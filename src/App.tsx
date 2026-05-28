@@ -53,10 +53,14 @@ const DEFAULT_ALPERA_TICKERS = (
 interface BacktestMetrics {
   indexTotalReturn: number;
   spTotalReturn: number;
-  stoxxTotalReturn: number;
+  brkTotalReturn: number;
+  googlTotalReturn: number;
+  aaplTotalReturn: number;
   indexCAGR: number;
   spCAGR: number;
-  stoxxCAGR: number;
+  brkCAGR: number;
+  googlCAGR: number;
+  aaplCAGR: number;
   maxDrawdown: number;
   sharpe: number;
   volatility: number;
@@ -66,7 +70,9 @@ interface PerformancePoint {
   date: string;
   "Serial Acquirers": number;
   "S&P 500": number;
-  "Stoxx Europe 600": number;
+  "Berkshire Hathaway": number;
+  "Google": number;
+  "Apple": number;
 }
 
 interface DrawdownPoint {
@@ -78,7 +84,9 @@ interface AnnualReturnItem {
   year: number;
   indexReturn: number;
   spReturn: number;
-  stoxxReturn: number;
+  brkReturn: number;
+  googlReturn: number;
+  aaplReturn: number;
 }
 
 interface AssetReportItem {
@@ -511,8 +519,8 @@ export default function App() {
                 <span className="font-semibold text-zinc-900"> Lifco AB (LIFCO-B.ST)</span> biases weight allocation toward extreme ROIC return drivers. The residual index is spread across all secondary acquirers to offer optimized thematic exposure.
               </p>
               <div className="border-t border-zinc-200 pt-3 flex justify-between items-center text-[9px] font-mono">
-                <span className="text-zinc-500">BASE BENCHMARK:</span>
-                <span className="px-2 py-0.5 rounded bg-white text-zinc-900 font-bold border border-zinc-200">S&P 500 + STOXX 600</span>
+                <span className="text-zinc-500">BASE BENCHMARKS:</span>
+                <span className="px-2 py-0.5 rounded bg-white text-zinc-900 font-bold border border-zinc-200">S&P 500, BRK, GOOGL, AAPL</span>
               </div>
             </div>
           </div>
@@ -690,20 +698,38 @@ export default function App() {
                         />
                         <Line
                           type="monotone"
-                          dataKey="Stoxx Europe 600"
-                          stroke="#A1A1AA"
+                          dataKey="Berkshire Hathaway"
+                          stroke="#0284C7"
                           strokeWidth={1.5}
                           strokeDasharray="2 2"
                           dot={false}
-                          name="Stoxx Europe 600"
+                          name="Berkshire Hathaway"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="Google"
+                          stroke="#EA4335"
+                          strokeWidth={1.5}
+                          strokeDasharray="2 2"
+                          dot={false}
+                          name="Google (Alphabet)"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="Apple"
+                          stroke="#16A34A"
+                          strokeWidth={1.5}
+                          strokeDasharray="2 2"
+                          dot={false}
+                          name="Apple"
                         />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
-                {/* GRAPH SECTION ROW: ANNUAL RETURNS + HISTORIC DRAWDOWN */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8" id="subcharts-double-row">
+                {/* GRAPH SECTION ROW: ANNUAL RETURNS */}
+                <div className="w-full" id="subcharts-double-row">
                   
                   {/* CHART 2: CALENDAR YEAR RETURN */}
                   <div className="bg-white rounded-sm border border-zinc-200 p-6 space-y-4 shadow-sm">
@@ -724,7 +750,7 @@ export default function App() {
                            margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E4E7" />
-                          <XAxis dataKey="year" fontSize={10} stroke="#71717A" tickLine={false} />
+                           <XAxis dataKey="year" fontSize={10} stroke="#71717A" tickLine={false} />
                           <YAxis fontSize={10} stroke="#71717A" tickLine={false} tickFormatter={(v) => `${v}%`} />
                           <Tooltip
                             contentStyle={{
@@ -741,57 +767,6 @@ export default function App() {
                           <Bar dataKey="indexReturn" name="Serial Acquirers" fill="#18181B" radius={[1, 1, 0, 0]} />
                           <Bar dataKey="spReturn" name="S&P 500" fill="#71717A" radius={[1, 1, 0, 0]} />
                         </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  {/* CHART 3: DRAWDOWN GRAPH (MONOCHROME SHADES) */}
-                  <div className="bg-white rounded-sm border border-zinc-200 p-6 space-y-4 shadow-sm">
-                    <div className="pb-3 border-b border-zinc-100">
-                      <h4 className="font-bold text-zinc-900 text-xs flex items-center space-x-2 font-mono uppercase tracking-wider">
-                        <TrendingDown className="w-4 h-4 text-zinc-700" />
-                        <span>Peak-to-Trough Drawdown Cycle</span>
-                      </h4>
-                      <p className="text-[11px] text-zinc-500 font-mono">
-                        Visualizing historical correction periods and risk parameters.
-                      </p>
-                    </div>
-
-                    <div className="h-[300px]" id="drawdowns_recharts_container">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                          data={results.drawdownSeries}
-                          margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
-                        >
-                          <defs>
-                            <linearGradient id="drawdownGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#71717A" stopOpacity={0.15} />
-                              <stop offset="95%" stopColor="#71717A" stopOpacity={0.0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E4E7" />
-                          <XAxis dataKey="date" fontSize={10} stroke="#71717A" tickLine={false} />
-                          <YAxis fontSize={10} stroke="#71717A" tickLine={false} tickFormatter={(v) => `${v}%`} />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#FFFFFF",
-                              borderRadius: "1px",
-                              border: "1px solid #D4D4D8",
-                              color: "#18181B",
-                              fontSize: "11px",
-                              fontFamily: "var(--font-mono)"
-                            }}
-                            formatter={(value: any) => [`${parseFloat(value).toFixed(2)}%`, "Drawdown"]}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="Drawdown"
-                            stroke="#18181B"
-                            strokeWidth={1.5}
-                            fillOpacity={1}
-                            fill="url(#drawdownGrad)"
-                          />
-                        </AreaChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
