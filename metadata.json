@@ -1,0 +1,6 @@
+{
+  "name": "Real World Serial Acquirer Index Dashboard",
+  "description": "An institutional-grade backtesting environment replicating the Real World Serial Acquirer Index analytics with custom weighted capital allocation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
