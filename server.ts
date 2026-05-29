@@ -55,6 +55,13 @@ const TICKER_NAMES: Record<string, string> = {
   "SDIP-B.ST": "Sdiptech AB",
   "BERG-B.ST": "Bergman & Beving AB",
   "BEIA-B.ST": "Beijer Alma AB",
+  "CHG.DE": "CHAPTERS Group AG",
+  "319A.T": "Next Generation Technology Group",
+  "3697.T": "SHIFT Inc.",
+  "AUROORA.HE": "Auroora Group Oyj",
+  "TOI.V": "Topicus.com Inc.",
+  "LMN.V": "Lumine Group Inc.",
+  "MMGR-B.ST": "Momentum Group AB (publ)",
   "^GSPC": "S&P 500 Index",
   "BRK-B": "Berkshire Hathaway Inc.",
   "GOOGL": "Alphabet Inc.",
@@ -67,7 +74,11 @@ const ticker_countries: Record<string, string> = {
   ".L": "United Kingdom",
   ".AS": "Netherlands",
   ".MI": "Italy",
-  ".PA": "France"
+  ".PA": "France",
+  ".DE": "Germany",
+  ".T": "Japan",
+  ".HE": "Finland/Nordics",
+  ".V": "Canada"
 };
 
 function getCountryForTicker(ticker: string): string {
@@ -379,7 +390,7 @@ async function startServer() {
           }
         } else {
           // Capital Allocation Quality Model (Premium Weighting)
-          const premiumTickers = ["CSU.TO", "LIFCO-B.ST"];
+          const premiumTickers = ["CSU.TO", "BRK-B", "LIFCO-B.ST"];
           const activePremium = activeAssets.filter(t => premiumTickers.includes(t.toUpperCase()) || premiumTickers.includes(t));
           const activeNonPremium = activeAssets.filter(t => !premiumTickers.includes(t.toUpperCase()) && !premiumTickers.includes(t));
 
@@ -396,8 +407,8 @@ async function startServer() {
               weights[t] = w;
             }
           } else {
-            // Premium active gets 10% each
-            const premiumWeightEach = 0.10;
+            // Premium active gets 7% each
+            const premiumWeightEach = 0.07;
             const totalPremiumWeight = activePremium.length * premiumWeightEach;
             const remainingWeight = 1.0 - totalPremiumWeight;
 
@@ -610,7 +621,7 @@ async function startServer() {
           symbol: t,
           name: TICKER_NAMES[t] || TICKER_NAMES[uT] || "Thematic Acquirer",
           country: getCountryForTicker(uT),
-          isPremium: t.toUpperCase() === "CSU.TO" || t.toUpperCase() === "LIFCO-B.ST",
+          isPremium: ["CSU.TO", "BRK-B", "LIFCO-B.ST"].includes(t.toUpperCase()),
           startPrice: firstValidPrice,
           startDate: firstValidDate,
           endPrice: lastValidPrice,

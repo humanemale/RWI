@@ -46,8 +46,8 @@ const DEFAULT_ALPERA_TICKERS = (
   "CSU.TO, ROP, VIT-B.ST, HEXA-B.ST, WKL.AS, TYL, ATCO-A.ST, IP.MI, BEIJ-B.ST, LIAB.ST, " +
   "NIBE-B.ST, MTRS.ST, HEI, TDG, APH, AME, ASSA-B.ST, SWEC-B.ST, AFRY.ST, REJL-B.ST, " +
   "BRO, CDW, ALIF-B.ST, VIMIAN.ST, SECARE.ST, DPLM.L, SITE, FERG, IMCD.AS, INSTAL.ST, " +
-  "BRAV.ST, GREEN.ST, ERF.PA, DHR, HLMA.L, INDT.ST, LIFCO-B.ST, ADDT-B.ST, LAGR-B.ST, " +
-  "SDIP-B.ST, BERG-B.ST, BEIA-B.ST"
+  "BRAV.ST, GREEN.ST, ERF.PA, DHR, HLMA.L, INDT.ST, LIFCO-B.ST, BRK-B, ADDT-B.ST, LAGR-B.ST, " +
+  "SDIP-B.ST, BERG-B.ST, BEIA-B.ST, CHG.DE, 319A.T, 3697.T, AUROORA.HE, TOI.V, LMN.V, MMGR-B.ST"
 );
 
 interface BacktestMetrics {
@@ -403,7 +403,7 @@ export default function App() {
                           Quality Factor Model
                         </div>
                         <p className={`text-[10px] leading-normal ${weightingStrategy === "premium" ? "text-zinc-300" : "text-zinc-500"}`}>
-                          Primary compounders (<strong>CSU.TO</strong> &amp; <strong>LIFCO-B.ST</strong>) loaded with 10% premium weight each. Residual split equally.
+                          Primary compounders (<strong>CSU.TO</strong>, <strong>BRK-B</strong> &amp; <strong>LIFCO-B.ST</strong>) loaded with 7% premium weight each. Residual split equally.
                         </p>
                       </div>
                       <div className={`mt-0.5 h-3 w-3 rounded-full border flex items-center justify-center shrink-0 ${
@@ -507,8 +507,7 @@ export default function App() {
                 <Award className="w-4 h-4 text-zinc-800" /> Index Theory &amp; Setup
               </h4>
               <p className="text-xs text-zinc-650 leading-relaxed">
-                Applying a premium base allocation to <span className="font-semibold text-zinc-900">Constellation Software (CSU.TO)</span> and 
-                <span className="font-semibold text-zinc-900"> Lifco AB (LIFCO-B.ST)</span> biases weight allocation toward extreme ROIC return drivers. The residual index is spread across all secondary acquirers to offer optimized thematic exposure.
+                Applying a premium base allocation to <span className="font-semibold text-zinc-900">Constellation Software (CSU.TO)</span>, <span className="font-semibold text-zinc-900">Berkshire Hathaway (BRK-B)</span> and <span className="font-semibold text-zinc-900">Lifco AB (LIFCO-B.ST)</span> biases weight allocation toward core high-ROIC quality compounders (with a premium of 7% each in the quality factor model). The residual index is spread across all secondary acquirers to offer optimized thematic exposure.
               </p>
               <div className="border-t border-zinc-200 pt-3 flex justify-between items-center text-[9px] font-mono">
                 <span className="text-zinc-500">BASE BENCHMARKS:</span>
@@ -1022,10 +1021,10 @@ export default function App() {
                                         }`}>
                                           {namesUnlocked ? asset.symbol : "████"}
                                         </span>
-                                        {asset.isPremium ? (
+                                        {asset.isPremium && results.weightingModelConfig === "premium" ? (
                                           <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-xs bg-zinc-900 text-white border border-zinc-900 font-mono">
                                             <Award className="w-2.5 h-2.5" />
-                                            <span>10% Premium Allocate</span>
+                                            <span>7% Premium Allocate</span>
                                           </span>
                                         ) : (
                                           <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-xs bg-zinc-100 text-zinc-500 border border-zinc-200 font-mono">
