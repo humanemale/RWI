@@ -54,13 +54,9 @@ interface BacktestMetrics {
   indexTotalReturn: number;
   spTotalReturn: number;
   brkTotalReturn: number;
-  googlTotalReturn: number;
-  aaplTotalReturn: number;
   indexCAGR: number;
   spCAGR: number;
   brkCAGR: number;
-  googlCAGR: number;
-  aaplCAGR: number;
   maxDrawdown: number;
   sharpe: number;
   volatility: number;
@@ -71,8 +67,6 @@ interface PerformancePoint {
   "Serial Acquirers": number;
   "S&P 500": number;
   "Berkshire Hathaway": number;
-  "Google": number;
-  "Apple": number;
 }
 
 interface DrawdownPoint {
@@ -85,8 +79,6 @@ interface AnnualReturnItem {
   indexReturn: number;
   spReturn: number;
   brkReturn: number;
-  googlReturn: number;
-  aaplReturn: number;
 }
 
 interface AssetReportItem {
@@ -334,7 +326,7 @@ export default function App() {
                       type="date"
                       value={startDate}
                       min="1999-01-01"
-                      max="2026-12-31"
+                      max="2025-12-31"
                       onChange={(e) => setStartDate(e.target.value)}
                       className="w-full text-xs rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden font-mono text-center"
                     />
@@ -345,7 +337,7 @@ export default function App() {
                       type="date"
                       value={endDate}
                       min="2000-01-01"
-                      max="2026-12-31"
+                      max="2025-12-31"
                       onChange={(e) => setEndDate(e.target.value)}
                       className="w-full text-xs rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden font-mono text-center"
                     />
@@ -358,10 +350,10 @@ export default function App() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => handleApplyPreset("2000-01-01", "2026-05-28")}
+                      onClick={() => handleApplyPreset("2000-01-01", "2025-12-31")}
                       className="py-1 px-2 text-[10px] font-mono rounded bg-zinc-50 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors text-zinc-500 text-left"
                     >
-                      • Max Time (2000-2026)
+                      • Max Time (2000-2025)
                     </button>
                     <button
                       type="button"
@@ -379,10 +371,10 @@ export default function App() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleApplyPreset("2020-01-01", "2026-05-28")}
+                      onClick={() => handleApplyPreset("2020-01-01", "2025-12-31")}
                       className="py-1 px-2 text-[10px] font-mono rounded bg-zinc-50 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors text-zinc-500 text-left"
                     >
-                      • Modern (2020-2026)
+                      • Modern (2020-2025)
                     </button>
                   </div>
                 </div>
@@ -520,7 +512,7 @@ export default function App() {
               </p>
               <div className="border-t border-zinc-200 pt-3 flex justify-between items-center text-[9px] font-mono">
                 <span className="text-zinc-500">BASE BENCHMARKS:</span>
-                <span className="px-2 py-0.5 rounded bg-white text-zinc-900 font-bold border border-zinc-200">S&P 500, BRK, GOOGL, AAPL</span>
+                <span className="px-2 py-0.5 rounded bg-white text-zinc-900 font-bold border border-zinc-200">S&P 500, BRK</span>
               </div>
             </div>
           </div>
@@ -568,7 +560,7 @@ export default function App() {
                   <div className="bg-white p-5 rounded-sm border border-zinc-200 hover:border-zinc-400 transition-colors duration-200 shadow-sm" id="sp500-bench-stats">
                     <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider font-mono">S&P 500 Return</p>
                     <div className="mt-1 flex items-baseline space-x-1">
-                      <span className="text-xl font-bold text-zinc-800 font-mono tracking-tight">
+                      <span className="text-xl font-bold text-zinc-850 font-mono tracking-tight">
                         {fmtPct(results.metrics.spTotalReturn)}
                       </span>
                     </div>
@@ -578,30 +570,31 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* METRIC 3: MAXIMUM DRAWDOWN (P-to-T) */}
-                  <div className="bg-white p-5 rounded-sm border border-zinc-200 hover:border-zinc-400 transition-colors duration-200 shadow-sm" id="max-risk-stats">
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Max Peak-To-Trough</p>
+                  {/* METRIC 3: BERKSHIRE HATHAWAY Performance */}
+                  <div className="bg-white p-5 rounded-sm border border-zinc-200 hover:border-zinc-400 transition-colors duration-200 shadow-sm" id="brk-bench-stats">
+                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Berkshire Hathaway</p>
                     <div className="mt-1 flex items-baseline space-x-1">
-                      <span className="text-xl font-bold text-zinc-805 font-mono tracking-tight">
-                        {fmtPct(results.metrics.maxDrawdown)}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 text-[10px] flex items-center space-x-1 font-mono">
-                      <span className="text-zinc-400">MAX_DRAWDOWN</span>
-                    </div>
-                  </div>
-
-                  {/* METRIC 4: RISK ADJUSTMENTS (SHARPE RATIO) */}
-                  <div className="bg-white p-5 rounded-sm border border-zinc-200 hover:border-zinc-400 transition-colors duration-200 shadow-sm" id="sharpe-efficiency-stats">
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Sharpe Ratio</p>
-                    <div className="mt-1 flex items-baseline space-x-1">
-                      <span className="text-xl font-bold text-zinc-900 font-mono tracking-tight">
-                        {fmtMtr(results.metrics.sharpe)}
+                      <span className="text-xl font-bold text-zinc-800 font-mono tracking-tight">
+                        {fmtPct(results.metrics.brkTotalReturn)}
                       </span>
                     </div>
                     <div className="mt-1.5 text-[10px] flex items-center space-x-1.5 font-mono">
-                      <span className="text-zinc-400">Vol:</span>
-                      <span className="font-bold text-zinc-700">{fmtPct(results.metrics.volatility)}</span>
+                      <span className="text-zinc-400">CAGR:</span>
+                      <span className="font-bold text-zinc-700">{fmtPct(results.metrics.brkCAGR)}</span>
+                    </div>
+                  </div>
+
+                  {/* METRIC 4: RISK & EFFICIENCY STATS */}
+                  <div className="bg-white p-5 rounded-sm border border-zinc-200 hover:border-zinc-400 transition-colors duration-200 shadow-sm" id="max-risk-stats">
+                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Risk Profile</p>
+                    <div className="mt-1 flex items-baseline space-x-1">
+                      <span className="text-xl font-bold text-zinc-900 font-mono tracking-tight text-red-650">
+                        {fmtPct(results.metrics.maxDrawdown)}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 text-[10px] flex items-center space-x-1.5 font-mono">
+                      <span className="text-zinc-400">Sharpe:</span>
+                      <span className="font-bold text-zinc-700">{fmtMtr(results.metrics.sharpe)}</span>
                     </div>
                   </div>
                 </div>
@@ -704,24 +697,6 @@ export default function App() {
                           strokeDasharray="2 2"
                           dot={false}
                           name="Berkshire Hathaway"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Google"
-                          stroke="#EA4335"
-                          strokeWidth={1.5}
-                          strokeDasharray="2 2"
-                          dot={false}
-                          name="Google (Alphabet)"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Apple"
-                          stroke="#16A34A"
-                          strokeWidth={1.5}
-                          strokeDasharray="2 2"
-                          dot={false}
-                          name="Apple"
                         />
                       </LineChart>
                     </ResponsiveContainer>

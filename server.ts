@@ -84,7 +84,7 @@ function generateSyntheticHistory(ticker: string): { dates: string[]; prices: nu
   const prices: number[] = [];
   
   const startDate = new Date("1999-01-01");
-  const endDate = new Date("2026-05-28"); // Aligned with context time
+  const endDate = new Date("2025-12-31"); // Aligned with December 31, 2025
   
   // Use a simple seed based on ticker characters to make it deterministic
   let seed = 0;
@@ -259,7 +259,7 @@ async function startServer() {
       }
 
       // Fetch all portfolios tickers and benchmarks
-      const allTickersToFetch = Array.from(new Set([...tickerList, "^GSPC", "BRK-B", "GOOGL", "AAPL"]));
+      const allTickersToFetch = Array.from(new Set([...tickerList, "^GSPC", "BRK-B"]));
       const fetchPromises = allTickersToFetch.map(async (t) => {
         const h = await fetchTickerHistory(t);
         return { ticker: t, data: h };
@@ -486,8 +486,6 @@ async function startServer() {
 
       const normSP500 = buildNormalizedBenchmark("^GSPC");
       const normBRK = buildNormalizedBenchmark("BRK-B");
-      const normGOOGL = buildNormalizedBenchmark("GOOGL");
-      const normAAPL = buildNormalizedBenchmark("AAPL");
 
       // Compute rolling metrics, series values and drawdowns
       const custom_index_points = indexValues;
@@ -509,8 +507,6 @@ async function startServer() {
       const totalIndexReturn = ((indexValues[indexValues.length - 1] - indexValues[0]) / indexValues[0]) * 100;
       const totalSPReturn = ((normSP500[normSP500.length - 1] - normSP500[0]) / normSP500[0]) * 100;
       const totalBRKReturn = ((normBRK[normBRK.length - 1] - normBRK[0]) / normBRK[0]) * 100;
-      const totalGOOGLReturn = ((normGOOGL[normGOOGL.length - 1] - normGOOGL[0]) / normGOOGL[0]) * 100;
-      const totalAAPLReturn = ((normAAPL[normAAPL.length - 1] - normAAPL[0]) / normAAPL[0]) * 100;
 
       const dateStart = new Date(sortedTradingDates[0]);
       const dateEnd = new Date(sortedTradingDates[sortedTradingDates.length - 1]);
@@ -519,8 +515,6 @@ async function startServer() {
       const cagrIndex = diffYears > 0 ? (Math.pow(indexValues[indexValues.length - 1] / indexValues[0], 1 / diffYears) - 1) * 100 : 0;
       const cagrSP = diffYears > 0 ? (Math.pow(normSP500[normSP500.length - 1] / normSP500[0], 1 / diffYears) - 1) * 100 : 0;
       const cagrBRK = diffYears > 0 ? (Math.pow(normBRK[normBRK.length - 1] / normBRK[0], 1 / diffYears) - 1) * 100 : 0;
-      const cagrGOOGL = diffYears > 0 ? (Math.pow(normGOOGL[normGOOGL.length - 1] / normGOOGL[0], 1 / diffYears) - 1) * 100 : 0;
-      const cagrAAPL = diffYears > 0 ? (Math.pow(normAAPL[normAAPL.length - 1] / normAAPL[0], 1 / diffYears) - 1) * 100 : 0;
 
       // Extract daily Returns for Sharpe & Volatility logic
       const indexReturnsList: number[] = [];
@@ -546,7 +540,7 @@ async function startServer() {
       }
 
       const yearsSorted = Object.keys(yearValues).map(Number).sort();
-      const annualReturns: { year: number; indexReturn: number; spReturn: number; brkReturn: number; googlReturn: number; aaplReturn: number }[] = [];
+      const annualReturns: { year: number; indexReturn: number; spReturn: number; brkReturn: number }[] = [];
 
       for (let k = 0; k < yearsSorted.length; k++) {
         const yr = yearsSorted[k];
@@ -556,39 +550,29 @@ async function startServer() {
         let indexValStart = 100.0;
         let spValStart = 100.0;
         let brkValStart = 100.0;
-        let googlValStart = 100.0;
-        let aaplValStart = 100.0;
 
         if (k === 0) {
           // Relies on day 0 values
           indexValStart = indexValues[0];
           spValStart = normSP500[0];
           brkValStart = normBRK[0];
-          googlValStart = normGOOGL[0];
-          aaplValStart = normAAPL[0];
         } else {
           const prevYear = yearsSorted[k - 1];
           const lastDayIdxPrevYear = yearValues[prevYear].lastValIdx;
           indexValStart = indexValues[lastDayIdxPrevYear];
           spValStart = normSP500[lastDayIdxPrevYear];
           brkValStart = normBRK[lastDayIdxPrevYear];
-          googlValStart = normGOOGL[lastDayIdxPrevYear];
-          aaplValStart = normAAPL[lastDayIdxPrevYear];
         }
 
         const indexValEnd = indexValues[lastDayIdxThisYear];
         const spValEnd = normSP500[lastDayIdxThisYear];
         const brkValEnd = normBRK[lastDayIdxThisYear];
-        const googlValEnd = normGOOGL[lastDayIdxThisYear];
-        const aaplValEnd = normAAPL[lastDayIdxThisYear];
 
         annualReturns.push({
           year: yr,
           indexReturn: indexValStart > 0 ? ((indexValEnd - indexValStart) / indexValStart) * 100 : 0,
           spReturn: spValStart > 0 ? ((spValEnd - spValStart) / spValStart) * 100 : 0,
           brkReturn: brkValStart > 0 ? ((brkValEnd - brkValStart) / brkValStart) * 100 : 0,
-          googlReturn: googlValStart > 0 ? ((googlValEnd - googlValStart) / googlValStart) * 100 : 0,
-          aaplReturn: aaplValStart > 0 ? ((aaplValEnd - aaplValStart) / aaplValStart) * 100 : 0,
         });
       }
 
@@ -649,8 +633,6 @@ async function startServer() {
             "Serial Acquirers": parseFloat(indexValues[i].toFixed(2)),
             "S&P 500": parseFloat(normSP500[i].toFixed(2)),
             "Berkshire Hathaway": parseFloat(normBRK[i].toFixed(2)),
-            "Google": parseFloat(normGOOGL[i].toFixed(2)),
-            "Apple": parseFloat(normAAPL[i].toFixed(2)),
           });
 
           drawdownSeries.push({
@@ -675,13 +657,9 @@ async function startServer() {
           indexTotalReturn: totalIndexReturn,
           spTotalReturn: totalSPReturn,
           brkTotalReturn: totalBRKReturn,
-          googlTotalReturn: totalGOOGLReturn,
-          aaplTotalReturn: totalAAPLReturn,
           indexCAGR: cagrIndex,
           spCAGR: cagrSP,
           brkCAGR: cagrBRK,
-          googlCAGR: cagrGOOGL,
-          aaplCAGR: cagrAAPL,
           maxDrawdown: minDrawdown,
           sharpe: sharpeRatio,
           volatility: volAnnualized
