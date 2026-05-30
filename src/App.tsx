@@ -276,7 +276,7 @@ export default function App() {
             </h2>
             <div className="text-zinc-650 leading-relaxed text-xs sm:text-sm space-y-3 font-sans">
               <p>
-                The <strong>Real World Index</strong> is a benchmark index designed to capture the superior returns of the &ldquo;Serial Acquirer&rdquo; business model. By investing in a curated basket of listed serial acquirers, this vehicle provides investors with diversified, liquid exposure to the high-yield private SME (Small and Medium Enterprise) market without the illiquidity or high fees of traditional PE.
+                The <strong>Real World Index</strong> is a benchmark index designed to capture the superior returns of the &ldquo;Serial Acquirer&rdquo; business model. By investing in a curated basket of listed serial acquirers, it provides investors with diversified, liquid exposure to the high-yield private SME (Small and Medium Enterprise) market without the illiquidity or high fees of traditional PE.
               </p>
               <p>
                 Through these public holdings, investors gain indirect ownership of over 3,000-10,000 underlying SMEs that are part of the real world economy. This creates a massive diversification effect, mitigating single-company risk.
