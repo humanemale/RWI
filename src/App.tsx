@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   TrendingUp,
@@ -107,9 +107,114 @@ interface BacktestResults {
   endDateActual: string;
 }
 
+function mapYahooTickerToTradingView(ticker: string): string {
+  const clean = ticker.trim().toUpperCase();
+  if (clean === "BRK-B") {
+    return "NYSE:BRK.B";
+  }
+  if (clean.endsWith(".TO")) {
+    return "TSX:" + clean.replace(".TO", "");
+  }
+  if (clean.endsWith(".V")) {
+    return "TSXV:" + clean.replace(".V", "");
+  }
+  if (clean.endsWith(".ST")) {
+    const symbolWithoutSuffix = clean.replace(".ST", "");
+    const formattedSymbol = symbolWithoutSuffix.replace("-", "_");
+    return "OMXSTO:" + formattedSymbol;
+  }
+  if (clean.endsWith(".HE")) {
+    return "NASDAQHEX:" + clean.replace(".HE", "");
+  }
+  if (clean.endsWith(".DE")) {
+    return "XETR:" + clean.replace(".DE", "");
+  }
+  if (clean.endsWith(".T")) {
+    return "TSE:" + clean.replace(".T", "");
+  }
+  if (clean.endsWith(".AS")) {
+    return "EURONEXT:" + clean.replace(".AS", "");
+  }
+  if (clean.endsWith(".MI")) {
+    return "MIL:" + clean.replace(".MI", "");
+  }
+  if (clean.endsWith(".L")) {
+    return "LSE:" + clean.replace(".L", "");
+  }
+  if (clean.endsWith(".PA")) {
+    return "EURONEXT:" + clean.replace(".PA", "");
+  }
+  return clean;
+}
+
+interface TradingViewWidgetProps {
+  symbol: string;
+}
+
+function TradingViewWidget({ symbol }: TradingViewWidgetProps) {
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scriptId = "tradingview-widget-script";
+    let script = document.getElementById(scriptId) as HTMLScriptElement;
+
+    const initWidget = () => {
+      if (container.current && (window as any).TradingView) {
+        container.current.innerHTML = "";
+        const widgetContainer = document.createElement("div");
+        widgetContainer.id = "tradingview_chart_widget_active";
+        widgetContainer.style.height = "100%";
+        container.current.appendChild(widgetContainer);
+
+        new (window as any).TradingView.widget({
+          autosize: true,
+          symbol: symbol,
+          interval: "D",
+          timezone: "Etc/UTC",
+          theme: "light",
+          style: "1",
+          locale: "en",
+          enable_publishing: false,
+          hide_side_toolbar: false,
+          allow_symbol_change: true,
+          container_id: "tradingview_chart_widget_active",
+        });
+      }
+    };
+
+    if (!script) {
+      script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://s3.tradingview.com/tv.js";
+      script.async = true;
+      script.onload = initWidget;
+      document.head.appendChild(script);
+    } else {
+      if ((window as any).TradingView) {
+        initWidget();
+      } else {
+        script.addEventListener("load", initWidget);
+      }
+    }
+
+    return () => {
+      if (script) {
+        script.removeEventListener("load", initWidget);
+      }
+    };
+  }, [symbol]);
+
+  return (
+    <div className="tradingview-widget-container" style={{ height: "600px" }}>
+      <div ref={container} className="h-full w-full" />
+    </div>
+  );
+}
+
 export default function App() {
   // Config state
   const [tickersInput, setTickersInput] = useState(DEFAULT_ALPERA_TICKERS);
+  const [selectedAnalysisTicker, setSelectedAnalysisTicker] = useState("CSU.TO");
   const [weightingStrategy, setWeightingStrategy] = useState<"equal" | "premium">("premium");
   const [startDate, setStartDate] = useState("2010-01-01");
   const [endDate, setEndDate] = useState("2025-12-31");
@@ -133,6 +238,11 @@ export default function App() {
   const [namesUnlocked, setNamesUnlocked] = useState(false);
   const [namesPasswordInput, setNamesPasswordInput] = useState("");
   const [namesPasswordError, setNamesPasswordError] = useState(false);
+
+  // Layer 3 Lock state: Individual stock analysis wall (password: "threadsunite")
+  const [analysisUnlocked, setAnalysisUnlocked] = useState(false);
+  const [analysisPasswordInput, setAnalysisPasswordInput] = useState("");
+  const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
 
   const triggerBacktest = async (isInitial = false) => {
     setLoading(true);
@@ -1099,6 +1209,107 @@ export default function App() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* INDIVIDUAL STOCK ANALYSIS */}
+        <div className="bg-white rounded-sm border border-zinc-200 shadow-xs overflow-hidden" id="stock-analysis-section">
+          {!analysisUnlocked ? (
+            <div className="p-8 sm:p-16 text-center text-zinc-650 flex flex-col items-center justify-center space-y-6" id="stock_analysis_locked">
+              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-sm shadow-inner">
+                <TrendingUp className="w-8 h-8 text-zinc-800" />
+              </div>
+              <div className="space-y-2 max-w-md mx-auto">
+                <h4 className="text-zinc-950 font-bold text-xs font-mono tracking-widest uppercase">INDIVIDUAL ISSUER ANALYTICS</h4>
+                <p className="text-[11px] text-zinc-550 font-mono leading-relaxed">
+                  Real-time price chart, financials, and technical indicators are locked behind structural security parameters. Please enter the verification key to unlock.
+                </p>
+              </div>
+              <form 
+                onSubmit={(e) => {
+                   e.preventDefault();
+                   if (analysisPasswordInput.trim() === "threadsunite") {
+                     setAnalysisUnlocked(true);
+                     setAnalysisPasswordError(false);
+                   } else {
+                     setAnalysisPasswordError(true);
+                   }
+                }}
+                className="w-full max-w-xs space-y-3 mx-auto"
+              >
+                <div className="flex space-x-2">
+                  <input
+                    type="password"
+                    placeholder="ENTER PASSWORD WALL..."
+                    value={analysisPasswordInput}
+                    onChange={(e) => {
+                      setAnalysisPasswordInput(e.target.value);
+                      if (analysisPasswordError) setAnalysisPasswordError(false);
+                    }}
+                    className="flex-1 text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-hidden"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-zinc-900 text-white text-xs font-bold font-mono tracking-wider border border-zinc-900 hover:bg-black transition-colors uppercase rounded-sm cursor-pointer"
+                  >
+                    VERIFY
+                  </button>
+                </div>
+                {analysisPasswordError && (
+                  <p className="text-[10px] text-red-600 font-bold font-mono text-center">• INCORRECT ENCRYPTION KEY CODE</p>
+                )}
+              </form>
+            </div>
+          ) : (
+            <>
+              <div className="p-6 border-b border-zinc-200 bg-zinc-50/50">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-zinc-900 text-xs sm:text-sm uppercase tracking-wider font-mono flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-zinc-900" />
+                      Individual Issuer Analytics &amp; Live Charts
+                    </h3>
+                    <p className="text-[11px] text-zinc-550 font-mono">
+                      Select a portfolio constituent to review real-time price action, financials waves, and technical indicators.
+                    </p>
+                  </div>
+                  
+                  {/* Select Dropdown */}
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="ticker-select" className="text-[10px] font-bold text-zinc-550 uppercase font-mono whitespace-nowrap">
+                      SELECT ISSUER:
+                    </label>
+                    <select
+                      id="ticker-select"
+                      value={selectedAnalysisTicker}
+                      onChange={(e) => setSelectedAnalysisTicker(e.target.value)}
+                      className="rounded-sm border border-zinc-200 bg-white shadow-xs px-3 py-2 text-xs font-bold font-mono text-zinc-900 focus:border-zinc-500 focus:outline-hidden cursor-pointer min-w-[180px] hover:border-zinc-400 transition-colors"
+                    >
+                      {(results?.assetReports.map(a => a.symbol) || 
+                        tickersInput.split(",").map(t => t.trim()).filter(t => t.length > 0)
+                      ).map((sym) => {
+                        const assetReport = results?.assetReports.find(a => a.symbol === sym);
+                        const displayName = assetReport && namesUnlocked 
+                          ? `${sym} - ${assetReport.name}`
+                          : sym;
+                        return (
+                          <option key={sym} value={sym}>
+                            {displayName}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* TradingView Widget Container */}
+              <div className="p-2.5 bg-zinc-50">
+                <div className="bg-white border border-zinc-200 rounded-sm overflow-hidden" style={{ minHeight: "600px" }}>
+                  <TradingViewWidget symbol={mapYahooTickerToTradingView(selectedAnalysisTicker)} />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
 
