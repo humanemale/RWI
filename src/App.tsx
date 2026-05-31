@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { SCREENER_STOCKS } from "./screenerData";
 import { motion, AnimatePresence } from "motion/react";
 import {
   TrendingUp,
@@ -244,6 +245,24 @@ export default function App() {
   const [analysisPasswordInput, setAnalysisPasswordInput] = useState("");
   const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
 
+  // Active navigation tab ("dashboard" | "screener")
+  const [activeTab, setActiveTab] = useState<"dashboard" | "screener">("dashboard");
+
+  // Screener authentication wall (password: "threadsresearch")
+  const [screenerUnlocked, setScreenerUnlocked] = useState(false);
+  const [screenerPasswordInput, setScreenerPasswordInput] = useState("");
+  const [screenerPasswordError, setScreenerPasswordError] = useState(false);
+
+  // Screener Filters
+  const [filterPe, setFilterPe] = useState<number | "">("");
+  const [filterPb, setFilterPb] = useState<number | "">("");
+  const [filterDivYield, setFilterDivYield] = useState<number | "">("");
+  const [filterDebtEquity, setFilterDebtEquity] = useState<number | "">("");
+  const [filterMinCap, setFilterMinCap] = useState<number | "">("");
+  const [filterMaxCap, setFilterMaxCap] = useState<number | "">("");
+  const [screenerSearchText, setScreenerSearchText] = useState("");
+  const [screenerCountryFilter, setScreenerCountryFilter] = useState("all");
+
   const triggerBacktest = async (isInitial = false) => {
     setLoading(true);
     setError(null);
@@ -364,8 +383,34 @@ export default function App() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4 text-xs font-mono text-zinc-500">
-            <div className="flex items-center space-x-1.5 bg-zinc-50 border border-zinc-200 text-zinc-800 px-2.5 py-1 rounded-sm">
+          <div className="flex items-center space-x-4 text-xs font-mono">
+            <nav className="flex space-x-1.5 p-1 bg-zinc-100 border border-zinc-200 rounded-sm">
+              <button
+                onClick={() => setActiveTab("dashboard")}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer ${
+                  activeTab === "dashboard"
+                    ? "bg-zinc-900 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900"
+                }`}
+              >
+                DASHBOARD
+              </button>
+              <button
+                onClick={() => setActiveTab("screener")}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === "screener"
+                    ? "bg-zinc-900 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900"
+                }`}
+              >
+                SCREENER
+                {!screenerUnlocked && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-pulse" />
+                )}
+              </button>
+            </nav>
+
+            <div className="hidden md:flex items-center space-x-1.5 bg-zinc-50 border border-zinc-200 text-zinc-800 px-2.5 py-1.5 rounded-sm">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-900 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zinc-900"></span>
@@ -377,8 +422,356 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" id="main-content-area">
-        {/* BANNER REVEAL */}
-        <div className="bg-white border border-zinc-200 rounded-sm p-6 sm:p-8 text-zinc-900 relative overflow-hidden animate-fade-in" id="dashboard-intro">
+        {activeTab === "screener" ? (
+          !screenerUnlocked ? (
+            <div className="bg-white rounded-sm border border-zinc-200 shadow-sm overflow-hidden p-8 sm:p-20 text-center text-zinc-650 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto my-12 animate-fade-in" id="screener_locked_card">
+              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-sm shadow-inner">
+                <ListFilter className="w-10 h-10 text-zinc-900" />
+              </div>
+              <div className="space-y-2 max-w-md mx-auto">
+                <h4 className="text-zinc-950 font-bold text-sm font-mono tracking-widest uppercase mb-1">SERIAL ACQUIRER SCREENER ACCESS</h4>
+                <p className="text-[11px] text-zinc-550 font-mono leading-relaxed">
+                  The active equity screening universe of global serial acquirers is locked behind clearance passwords. Enter key code to proceed.
+                </p>
+              </div>
+              <form 
+                onSubmit={(e) => {
+                   e.preventDefault();
+                   if (screenerPasswordInput.trim() === "threadsresearch") {
+                     setScreenerUnlocked(true);
+                     setScreenerPasswordError(false);
+                   } else {
+                     setScreenerPasswordError(true);
+                   }
+                }}
+                className="w-full max-w-xs space-y-3 mx-auto"
+              >
+                <div className="flex space-x-2">
+                  <input
+                    type="password"
+                    placeholder="ENTER SCREEN ACCESS PASSWORD..."
+                    value={screenerPasswordInput}
+                    onChange={(e) => {
+                      setScreenerPasswordInput(e.target.value);
+                      if (screenerPasswordError) setScreenerPasswordError(false);
+                    }}
+                    className="flex-1 text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-hidden"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-zinc-900 text-white text-xs font-bold font-mono tracking-wider border border-zinc-900 hover:bg-black transition-colors uppercase rounded-sm cursor-pointer"
+                  >
+                    VERIFY
+                  </button>
+                </div>
+                {screenerPasswordError && (
+                  <p className="text-[10px] text-red-650 font-bold font-mono text-center">• INCORRECT CLEARANCE KEY</p>
+                )}
+              </form>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-fade-in" id="screener-workspace">
+              {/* Screener Intro Banner */}
+              <div className="bg-white border border-zinc-200 rounded-sm p-6 sm:p-8 text-zinc-900 overflow-hidden">
+                <div className="max-w-4xl space-y-2">
+                  <h2 className="text-lg font-mono font-bold uppercase tracking-wider text-zinc-900 flex items-center gap-2">
+                    <ListFilter className="w-5 h-5 text-zinc-900" />
+                    Global Serial Acquirer Equity Screener
+                  </h2>
+                  <p className="text-zinc-550 text-xs font-mono leading-relaxed">
+                    Perform precise params-based screening over the active universal database of 90+ global serial acquirers across various currencies and stock markets.
+                  </p>
+                </div>
+              </div>
+
+              {/* Split Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left: Sidebar Filters */}
+                <div className="lg:col-span-3 space-y-6">
+                  <div className="bg-white border border-zinc-200 rounded-sm p-5 space-y-6 shadow-xs">
+                    <div className="pb-3 border-b border-zinc-100 flex items-center justify-between">
+                      <span className="text-[10px] font-bold font-mono text-zinc-955 uppercase tracking-widest">SCREENER FILTERS</span>
+                      <button
+                        onClick={() => {
+                          setFilterPe("");
+                          setFilterPb("");
+                          setFilterDivYield("");
+                          setFilterDebtEquity("");
+                          setFilterMinCap("");
+                          setFilterMaxCap("");
+                          setScreenerSearchText("");
+                          setScreenerCountryFilter("all");
+                        }}
+                        className="text-[9px] font-mono uppercase bg-zinc-50 hover:bg-zinc-100 px-2 py-1 rounded-sm border border-zinc-200 text-zinc-650 transition-colors shrink-0 cursor-pointer"
+                      >
+                        Reset All
+                      </button>
+                    </div>
+
+                    {/* Search bar */}
+                    <div className="space-y-1.5 font-mono">
+                      <label className="text-[10px] text-zinc-550 font-bold uppercase">SEARCH TICKER/NAME</label>
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type="text"
+                          placeholder="e.g. CSU, Lifco..."
+                          value={screenerSearchText}
+                          onChange={(e) => setScreenerSearchText(e.target.value)}
+                          className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white pl-8 pr-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Country List filter */}
+                    <div className="space-y-1.5 font-mono">
+                      <label className="text-[10px] text-zinc-550 font-bold uppercase">COUNTRY LISTING</label>
+                      <select
+                        value={screenerCountryFilter}
+                        onChange={(e) => setScreenerCountryFilter(e.target.value)}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden cursor-pointer"
+                      >
+                        <option value="all">ALL COUNTRIES</option>
+                        {Array.from(new Set(SCREENER_STOCKS.map(s => s.country))).sort().map(country => (
+                          <option key={country} value={country}>
+                            {country.toUpperCase()} ({SCREENER_STOCKS.filter(s => s.country === country).length})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Max PE */}
+                    <div className="space-y-1.5 font-mono">
+                      <div className="flex justify-between">
+                        <label className="text-[10px] text-zinc-550 font-bold uppercase">MAX P/E RATIO</label>
+                        <span className="text-[10px] bg-zinc-100 text-zinc-800 px-1 py-0.2 rounded font-bold">
+                          {filterPe !== "" ? `${filterPe}x` : "∞"}
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        placeholder="e.g. 30"
+                        value={filterPe}
+                        onChange={(e) => setFilterPe(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-zinc-950 focus:border-zinc-500 focus:outline-hidden"
+                      />
+                    </div>
+
+                    {/* Max PB */}
+                    <div className="space-y-1.5 font-mono">
+                      <div className="flex justify-between">
+                        <label className="text-[10px] text-zinc-550 font-bold uppercase">MAX P/B RATIO</label>
+                        <span className="text-[10px] bg-zinc-100 text-zinc-800 px-1 py-0.2 rounded font-bold">
+                          {filterPb !== "" ? `${filterPb}x` : "∞"}
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        placeholder="e.g. 6"
+                        value={filterPb}
+                        onChange={(e) => setFilterPb(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-zinc-950 focus:border-zinc-500 focus:outline-hidden"
+                      />
+                    </div>
+
+                    {/* Min Div Yield */}
+                    <div className="space-y-1.5 font-mono">
+                      <div className="flex justify-between">
+                        <label className="text-[10px] text-zinc-550 font-bold uppercase">MIN DIVIDEND YIELD</label>
+                        <span className="text-[10px] bg-zinc-100 text-zinc-800 px-1 py-0.2 rounded font-bold">
+                          {filterDivYield !== "" ? `${filterDivYield}%` : "0%"}
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 1.0"
+                        value={filterDivYield}
+                        onChange={(e) => setFilterDivYield(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-zinc-950 focus:border-zinc-500 focus:outline-hidden"
+                      />
+                    </div>
+
+                    {/* Max Debt/Equity */}
+                    <div className="space-y-1.5 font-mono">
+                      <div className="flex justify-between">
+                        <label className="text-[10px] text-zinc-550 font-bold uppercase block">MAX DEBT/EQUITY</label>
+                        <span className="text-[10px] bg-zinc-100 text-zinc-800 px-1 py-0.2 rounded font-bold">
+                          {filterDebtEquity !== "" ? `${filterDebtEquity}x` : "∞"}
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 1.5"
+                        value={filterDebtEquity}
+                        onChange={(e) => setFilterDebtEquity(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-zinc-955 focus:border-zinc-500 focus:outline-hidden"
+                      />
+                    </div>
+
+                    {/* Market Cap Bounds */}
+                    <div className="space-y-3 font-mono">
+                      <label className="text-[10px] text-zinc-550 font-bold uppercase block border-b border-zinc-100 pb-1">MARKET CAP LIMITS ($M)</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <span className="text-[9px] text-zinc-400">MIN ($M)</span>
+                          <input
+                            type="number"
+                            placeholder="Min Cap"
+                            value={filterMinCap}
+                            onChange={(e) => setFilterMinCap(e.target.value === "" ? "" : Number(e.target.value))}
+                            className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-2 py-1 text-zinc-955 focus:border-zinc-500"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[9px] text-zinc-400">MAX ($M)</span>
+                          <input
+                            type="number"
+                            placeholder="Max Cap"
+                            value={filterMaxCap}
+                            onChange={(e) => setFilterMaxCap(e.target.value === "" ? "" : Number(e.target.value))}
+                            className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-2 py-1 text-zinc-955 focus:border-zinc-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Table Panel with Symbol, Company Name, Sector, Price, Country Listing, and Market Cap */}
+                <div className="lg:col-span-9 space-y-4">
+                  <div className="bg-white border border-zinc-200 rounded-sm shadow-sm overflow-hidden">
+                    <div className="p-4 bg-zinc-50/50 border-b border-zinc-200 flex items-center justify-between font-mono">
+                      <span className="text-xs font-bold text-zinc-955 uppercase">
+                        SCREENED ACTIVE CONSTITUENTS
+                      </span>
+                      <span className="text-[10px] font-bold bg-zinc-950 text-white px-2.5 py-0.5 rounded-sm">
+                        {SCREENER_STOCKS.filter((stock) => {
+                          if (screenerSearchText) {
+                            const q = screenerSearchText.toLowerCase().trim();
+                            if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
+                          }
+                          if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
+                          if (filterPe !== "" && stock.pe > filterPe) return false;
+                          if (filterPb !== "" && stock.pb > filterPb) return false;
+                          if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
+                          if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
+                          if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
+                          if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
+                          return true;
+                        }).length} RESULT(S)
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-200 font-mono">
+                            <th className="py-3 px-4">Ticker</th>
+                            <th className="py-3 px-4">Company Name</th>
+                            <th className="py-3 px-4">Sector</th>
+                            <th className="py-3 px-4 text-right">Price (Currency)</th>
+                            <th className="py-3 px-4 text-center">Country Listing</th>
+                            <th className="py-3 px-4 text-right font-bold text-zinc-900">Market Cap</th>
+                            <th className="py-3 px-2 text-center text-[9px]">P/E</th>
+                            <th className="py-3 px-2 text-center text-[9px]">P/B</th>
+                            <th className="py-3 px-2 text-center text-[9px]">Div Yield</th>
+                            <th className="py-3 px-2 text-center text-[9px]">Debt/Eq</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-150 text-[11px] font-mono">
+                          {SCREENER_STOCKS.filter((stock) => {
+                            if (screenerSearchText) {
+                              const q = screenerSearchText.toLowerCase().trim();
+                              if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
+                            }
+                            if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
+                            if (filterPe !== "" && stock.pe > filterPe) return false;
+                            if (filterPb !== "" && stock.pb > filterPb) return false;
+                            if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
+                            if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
+                            if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
+                            if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
+                            return true;
+                          }).length === 0 ? (
+                            <tr>
+                              <td colSpan={10} className="py-12 text-center text-zinc-400 font-bold uppercase text-xs font-mono">
+                                No serial acquirers match the specified filter matrix.
+                              </td>
+                            </tr>
+                          ) : (
+                            SCREENER_STOCKS.filter((stock) => {
+                              if (screenerSearchText) {
+                                const q = screenerSearchText.toLowerCase().trim();
+                                if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
+                              }
+                              if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
+                              if (filterPe !== "" && stock.pe > filterPe) return false;
+                              if (filterPb !== "" && stock.pb > filterPb) return false;
+                              if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
+                              if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
+                              if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
+                              if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
+                              return true;
+                            }).map((stock) => {
+                              const currencySymbolMap: Record<string, string> = {
+                                USD: "$",
+                                CAD: "C$",
+                                EUR: "€",
+                                GBP: "£",
+                                AUD: "A$",
+                                CHF: "CHF ",
+                                NOK: "kr ",
+                                SEK: "kr ",
+                                DKK: "kr ",
+                                PLN: "zł ",
+                                JPY: "¥"
+                              };
+                              const unit = currencySymbolMap[stock.currency] || "";
+                              const formattedCap = stock.marketCap >= 1000 
+                                ? `${unit}${(stock.marketCap / 1000).toFixed(1)}B`
+                                : `${unit}${stock.marketCap}M`;
+
+                              return (
+                                <tr key={stock.ticker} className="hover:bg-zinc-50 transition-colors">
+                                  <td className="py-3 px-4 font-bold text-zinc-950">
+                                    <span className="bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded-sm text-[10px]">
+                                      {stock.ticker}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 whitespace-nowrap text-zinc-900 font-semibold">{stock.name}</td>
+                                  <td className="py-3 px-4 text-zinc-500 italic text-[10px] whitespace-nowrap">{stock.sector}</td>
+                                  <td className="py-3 px-4 text-right font-bold text-zinc-950 whitespace-nowrap">
+                                    {unit}{stock.price.toFixed(2)} <span className="text-[9px] text-zinc-400 font-normal">({stock.currency})</span>
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <span className="bg-zinc-50 border border-zinc-200 px-2 py-0.5 rounded-xs text-[10px] text-zinc-650">
+                                      {stock.country}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 text-right font-bold text-zinc-950 whitespace-nowrap">
+                                    {formattedCap}
+                                  </td>
+                                  <td className="py-3 px-2 text-center text-zinc-800">{stock.pe}x</td>
+                                  <td className="py-3 px-2 text-center text-zinc-800">{stock.pb}x</td>
+                                  <td className="py-3 px-2 text-center text-green-700 font-bold">{stock.divYield}%</td>
+                                  <td className="py-3 px-2 text-center text-zinc-800">{stock.debtEquity}x</td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        ) : (
+          <>
+            <div className="bg-white border border-zinc-200 rounded-sm p-6 sm:p-8 text-zinc-900 relative overflow-hidden animate-fade-in" id="dashboard-intro">
           <div className="max-w-4xl relative z-10 space-y-4">
 
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight font-mono text-zinc-900">
@@ -1312,6 +1705,8 @@ export default function App() {
             </>
           )}
         </div>
+          </>
+        )}
       </main>
 
       {/* FOOTER BAR */}
