@@ -784,7 +784,7 @@ export default function App() {
                         <Line
                           type="monotone"
                           dataKey="Serial Acquirers"
-                          stroke="#18181B"
+                          stroke="#2563EB"
                           strokeWidth={2.5}
                           dot={false}
                           name="Serial Acquirer Index"
@@ -801,7 +801,7 @@ export default function App() {
                         <Line
                           type="monotone"
                           dataKey="Berkshire Hathaway"
-                          stroke="#0284C7"
+                          stroke="#18181B"
                           strokeWidth={1.5}
                           strokeDasharray="2 2"
                           dot={false}
@@ -848,8 +848,9 @@ export default function App() {
                             formatter={(value: any, name: any) => [`${parseFloat(value).toFixed(2)}%`, name]}
                           />
                           <Legend wrapperStyle={{ fontSize: "11px", fontFamily: "var(--font-mono)" }} />
-                          <Bar dataKey="indexReturn" name="Serial Acquirers" fill="#18181B" radius={[1, 1, 0, 0]} />
+                          <Bar dataKey="indexReturn" name="Serial Acquirers" fill="#2563EB" radius={[1, 1, 0, 0]} />
                           <Bar dataKey="spReturn" name="S&P 500" fill="#71717A" radius={[1, 1, 0, 0]} />
+                          <Bar dataKey="brkReturn" name="Berkshire Hathaway" fill="#18181B" radius={[1, 1, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
