@@ -262,6 +262,26 @@ export default function App() {
   const [filterMaxCap, setFilterMaxCap] = useState<number | "">("");
   const [screenerSearchText, setScreenerSearchText] = useState("");
   const [screenerCountryFilter, setScreenerCountryFilter] = useState("all");
+  const [screenerIndustryFilter, setScreenerIndustryFilter] = useState("all");
+  const [filterMinCagr, setFilterMinCagr] = useState<number | "">("");
+
+  // Filtered screener stocks list
+  const filteredStocks = SCREENER_STOCKS.filter((stock) => {
+    if (screenerSearchText) {
+      const q = screenerSearchText.toLowerCase().trim();
+      if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
+    }
+    if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
+    if (screenerIndustryFilter !== "all" && stock.industry !== screenerIndustryFilter) return false;
+    if (filterPe !== "" && stock.pe > filterPe) return false;
+    if (filterPb !== "" && stock.pb > filterPb) return false;
+    if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
+    if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
+    if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
+    if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
+    if (filterMinCagr !== "" && stock.priceCagr < filterMinCagr) return false;
+    return true;
+  });
 
   const triggerBacktest = async (isInitial = false) => {
     setLoading(true);
@@ -501,6 +521,8 @@ export default function App() {
                           setFilterMaxCap("");
                           setScreenerSearchText("");
                           setScreenerCountryFilter("all");
+                          setScreenerIndustryFilter("all");
+                          setFilterMinCagr("");
                         }}
                         className="text-[9px] font-mono uppercase bg-zinc-50 hover:bg-zinc-100 px-2 py-1 rounded-sm border border-zinc-200 text-zinc-650 transition-colors shrink-0 cursor-pointer"
                       >
@@ -538,6 +560,41 @@ export default function App() {
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    {/* Industry List filter */}
+                    <div className="space-y-1.5 font-mono">
+                      <label className="text-[10px] text-zinc-550 font-bold uppercase">INDUSTRY SECTOR</label>
+                      <select
+                        value={screenerIndustryFilter}
+                        onChange={(e) => setScreenerIndustryFilter(e.target.value)}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden cursor-pointer"
+                      >
+                        <option value="all">ALL INDUSTRIES</option>
+                        {Array.from(new Set(SCREENER_STOCKS.map(s => s.industry))).sort().map(ind => (
+                          <option key={ind} value={ind}>
+                            {ind.toUpperCase()} ({SCREENER_STOCKS.filter(s => s.industry === ind).length})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Min Price CAGR filter */}
+                    <div className="space-y-1.5 font-mono">
+                      <div className="flex justify-between">
+                        <label className="text-[10px] text-zinc-550 font-bold uppercase">MIN PRICE CAGR</label>
+                        <span className="text-[10px] bg-zinc-100 text-zinc-800 px-1 py-0.2 rounded font-bold">
+                          {filterMinCagr !== "" ? `${filterMinCagr}%` : "0%"}
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 15.0"
+                        value={filterMinCagr}
+                        onChange={(e) => setFilterMinCagr(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-zinc-950 focus:border-zinc-500 focus:outline-hidden"
+                      />
                     </div>
 
                     {/* Max PE */}
@@ -647,20 +704,7 @@ export default function App() {
                         SCREENED ACTIVE CONSTITUENTS
                       </span>
                       <span className="text-[10px] font-bold bg-zinc-950 text-white px-2.5 py-0.5 rounded-sm">
-                        {SCREENER_STOCKS.filter((stock) => {
-                          if (screenerSearchText) {
-                            const q = screenerSearchText.toLowerCase().trim();
-                            if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
-                          }
-                          if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
-                          if (filterPe !== "" && stock.pe > filterPe) return false;
-                          if (filterPb !== "" && stock.pb > filterPb) return false;
-                          if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
-                          if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
-                          if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
-                          if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
-                          return true;
-                        }).length} RESULT(S)
+                        {filteredStocks.length} RESULT(S)
                       </span>
                     </div>
 
@@ -671,7 +715,9 @@ export default function App() {
                             <th className="py-3 px-4">Ticker</th>
                             <th className="py-3 px-4">Company Name</th>
                             <th className="py-3 px-4">Sector</th>
+                            <th className="py-3 px-4">Industry</th>
                             <th className="py-3 px-4 text-right">Price (Currency)</th>
+                            <th className="py-3 px-4 text-right">10Y Price CAGR</th>
                             <th className="py-3 px-4 text-center">Country Listing</th>
                             <th className="py-3 px-4 text-right font-bold text-zinc-900">Market Cap</th>
                             <th className="py-3 px-2 text-center text-[9px]">P/E</th>
@@ -681,40 +727,14 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-150 text-[11px] font-mono">
-                          {SCREENER_STOCKS.filter((stock) => {
-                            if (screenerSearchText) {
-                              const q = screenerSearchText.toLowerCase().trim();
-                              if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
-                            }
-                            if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
-                            if (filterPe !== "" && stock.pe > filterPe) return false;
-                            if (filterPb !== "" && stock.pb > filterPb) return false;
-                            if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
-                            if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
-                            if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
-                            if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
-                            return true;
-                          }).length === 0 ? (
+                          {filteredStocks.length === 0 ? (
                             <tr>
-                              <td colSpan={10} className="py-12 text-center text-zinc-400 font-bold uppercase text-xs font-mono">
+                              <td colSpan={12} className="py-12 text-center text-zinc-400 font-bold uppercase text-xs font-mono">
                                 No serial acquirers match the specified filter matrix.
                               </td>
                             </tr>
                           ) : (
-                            SCREENER_STOCKS.filter((stock) => {
-                              if (screenerSearchText) {
-                                const q = screenerSearchText.toLowerCase().trim();
-                                if (!stock.ticker.toLowerCase().includes(q) && !stock.name.toLowerCase().includes(q)) return false;
-                              }
-                              if (screenerCountryFilter !== "all" && stock.country !== screenerCountryFilter) return false;
-                              if (filterPe !== "" && stock.pe > filterPe) return false;
-                              if (filterPb !== "" && stock.pb > filterPb) return false;
-                              if (filterDivYield !== "" && stock.divYield < filterDivYield) return false;
-                              if (filterDebtEquity !== "" && stock.debtEquity > filterDebtEquity) return false;
-                              if (filterMinCap !== "" && stock.marketCap < filterMinCap) return false;
-                              if (filterMaxCap !== "" && stock.marketCap > filterMaxCap) return false;
-                              return true;
-                            }).map((stock) => {
+                            filteredStocks.map((stock) => {
                               const currencySymbolMap: Record<string, string> = {
                                 USD: "$",
                                 CAD: "C$",
@@ -742,8 +762,12 @@ export default function App() {
                                   </td>
                                   <td className="py-3 px-4 whitespace-nowrap text-zinc-900 font-semibold">{stock.name}</td>
                                   <td className="py-3 px-4 text-zinc-500 italic text-[10px] whitespace-nowrap">{stock.sector}</td>
+                                  <td className="py-3 px-4 text-zinc-500 text-[10px] whitespace-nowrap">{stock.industry || "N/A"}</td>
                                   <td className="py-3 px-4 text-right font-bold text-zinc-950 whitespace-nowrap">
                                     {unit}{stock.price.toFixed(2)} <span className="text-[9px] text-zinc-400 font-normal">({stock.currency})</span>
+                                  </td>
+                                  <td className={`py-3 px-4 text-right font-mono font-bold whitespace-nowrap ${stock.priceCagr >= 20 ? 'text-emerald-700 bg-emerald-50/25' : stock.priceCagr >= 15 ? 'text-blue-700 bg-blue-55/25' : 'text-zinc-800'}`}>
+                                    {stock.priceCagr.toFixed(1)}%
                                   </td>
                                   <td className="py-3 px-4 text-center">
                                     <span className="bg-zinc-50 border border-zinc-200 px-2 py-0.5 rounded-xs text-[10px] text-zinc-650">
