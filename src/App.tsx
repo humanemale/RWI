@@ -230,17 +230,17 @@ export default function App() {
   const [assetSearch, setAssetSearch] = useState("");
   const [assetFilter, setAssetFilter] = useState<"all" | "premium" | "standard" | "Nordic" | "US_CAN">("all");
 
-  // Layer 1 Lock state: constituent analyzer wall (password: "realworldisreal")
+  // Layer 1 Lock state: constituent analyzer wall (secured via server validation)
   const [tableUnlocked, setTableUnlocked] = useState(false);
   const [tablePasswordInput, setTablePasswordInput] = useState("");
   const [tablePasswordError, setTablePasswordError] = useState(false);
 
-  // Layer 2 Lock state: company names redacted (password: "itounite" to unlock)
+  // Layer 2 Lock state: company names redacted (secured via server validation)
   const [namesUnlocked, setNamesUnlocked] = useState(false);
   const [namesPasswordInput, setNamesPasswordInput] = useState("");
   const [namesPasswordError, setNamesPasswordError] = useState(false);
 
-  // Layer 3 Lock state: Individual stock analysis wall (password: "threadsunite")
+  // Layer 3 Lock state: Individual stock analysis wall (secured via server validation)
   const [analysisUnlocked, setAnalysisUnlocked] = useState(false);
   const [analysisPasswordInput, setAnalysisPasswordInput] = useState("");
   const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
@@ -248,7 +248,7 @@ export default function App() {
   // Active navigation tab ("dashboard" | "screener")
   const [activeTab, setActiveTab] = useState<"dashboard" | "screener">("dashboard");
 
-  // Screener authentication wall (password: "threadsresearch")
+  // Screener authentication wall (secured via server validation)
   const [screenerUnlocked, setScreenerUnlocked] = useState(false);
   const [screenerPasswordInput, setScreenerPasswordInput] = useState("");
   const [screenerPasswordError, setScreenerPasswordError] = useState(false);
@@ -264,6 +264,24 @@ export default function App() {
   const [screenerCountryFilter, setScreenerCountryFilter] = useState("all");
   const [screenerIndustryFilter, setScreenerIndustryFilter] = useState("all");
   const [filterMinCagr, setFilterMinCagr] = useState<number | "">("");
+
+  // Helper for secure server-side verification of clearance keys (passwords)
+  const verifyPasswordOnServer = async (type: string, val: string): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/verify-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, password: val })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return !!data.success;
+      }
+    } catch (e) {
+      console.error("Secure key verification failed:", e);
+    }
+    return false;
+  };
 
   // Filtered screener stocks list
   const filteredStocks = SCREENER_STOCKS.filter((stock) => {
@@ -455,9 +473,10 @@ export default function App() {
                 </p>
               </div>
               <form 
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                    e.preventDefault();
-                   if (screenerPasswordInput.trim() === "threadsresearch") {
+                   const ok = await verifyPasswordOnServer("screener", screenerPasswordInput);
+                   if (ok) {
                      setScreenerUnlocked(true);
                      setScreenerPasswordError(false);
                    } else {
@@ -971,21 +990,70 @@ export default function App() {
                   <label className="text-[10px] font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5 font-mono">
                     Constituents ({tickersInput.split(",").filter(t => t.trim()).length} companies)
                   </label>
-                  <button
-                    onClick={handleResetTickers}
-                    className="text-[10px] uppercase font-mono tracking-wider font-bold text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-1"
-                  >
-                    <RefreshCw className="w-3 h-3 text-zinc-400" /> Reset Default
-                  </button>
+                  {namesUnlocked && (
+                    <button
+                      onClick={handleResetTickers}
+                      className="text-[10px] uppercase font-mono tracking-wider font-bold text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3 text-zinc-400" /> Reset Default
+                    </button>
+                  )}
                 </div>
 
-                <textarea
-                  value={tickersInput}
-                  onChange={(e) => setTickersInput(e.target.value)}
-                  rows={5}
-                  className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden resize-y leading-relaxed"
-                  placeholder="Ticker list separated by commas"
-                />
+                {!namesUnlocked ? (
+                  <div className="border border-zinc-200 bg-zinc-50/50 rounded-sm p-4 text-center font-mono space-y-3">
+                    <div className="flex items-center justify-center space-x-1.5 text-zinc-500">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
+                      <span className="text-[9px] uppercase font-bold tracking-wider">LEVEL 2 SECURITY ENCRYPTED</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 leading-relaxed">
+                      Enter the decryption password to review or customize the 50 underlying constituents.
+                    </p>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const ok = await verifyPasswordOnServer("names", namesPasswordInput);
+                        if (ok) {
+                          setNamesUnlocked(true);
+                          setNamesPasswordError(false);
+                        } else {
+                          setNamesPasswordError(true);
+                        }
+                      }}
+                      className="space-y-1.5"
+                    >
+                      <div className="flex space-x-1.5">
+                        <input
+                          type="password"
+                          placeholder="DECRYPT PASSWORD..."
+                          value={namesPasswordInput}
+                          onChange={(e) => {
+                            setNamesPasswordInput(e.target.value);
+                            if (namesPasswordError) setNamesPasswordError(false);
+                          }}
+                          className="flex-1 text-[10px] bg-white border border-zinc-200 px-2 py-1.5 text-zinc-900 placeholder-zinc-400 rounded-sm focus:outline-hidden focus:border-zinc-500 font-mono text-center"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-zinc-900 text-white text-[10px] font-bold tracking-wider hover:bg-black px-3 py-1.5 border border-zinc-900 transition-colors rounded-sm uppercase font-mono cursor-pointer shrink-0"
+                        >
+                          DECRYPT
+                        </button>
+                      </div>
+                      {namesPasswordError && (
+                        <p className="text-[9px] text-red-650 font-bold uppercase tracking-wider">INVALID CODE</p>
+                      )}
+                    </form>
+                  </div>
+                ) : (
+                  <textarea
+                    value={tickersInput}
+                    onChange={(e) => setTickersInput(e.target.value)}
+                    rows={5}
+                    className="w-full text-xs font-mono rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden resize-y leading-relaxed"
+                    placeholder="Ticker list separated by commas"
+                  />
+                )}
               </div>
 
               {/* EXECUTION CONTROL TRIGGER */}
@@ -1360,9 +1428,10 @@ export default function App() {
                         </p>
                       </div>
                       <form 
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                            e.preventDefault();
-                           if (tablePasswordInput.trim() === "realworldisreal") {
+                           const ok = await verifyPasswordOnServer("table", tablePasswordInput);
+                           if (ok) {
                              setTableUnlocked(true);
                              setTablePasswordError(false);
                            } else {
@@ -1467,9 +1536,10 @@ export default function App() {
                         
                         {!namesUnlocked ? (
                           <form
-                            onSubmit={(e) => {
+                            onSubmit={async (e) => {
                               e.preventDefault();
-                              if (namesPasswordInput.trim() === "itounite") {
+                              const ok = await verifyPasswordOnServer("names", namesPasswordInput);
+                              if (ok) {
                                 setNamesUnlocked(true);
                                 setNamesPasswordError(false);
                               } else {
@@ -1643,9 +1713,10 @@ export default function App() {
                 </p>
               </div>
               <form 
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                    e.preventDefault();
-                   if (analysisPasswordInput.trim() === "threadsunite") {
+                   const ok = await verifyPasswordOnServer("analysis", analysisPasswordInput);
+                   if (ok) {
                      setAnalysisUnlocked(true);
                      setAnalysisPasswordError(false);
                    } else {

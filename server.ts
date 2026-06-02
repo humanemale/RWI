@@ -207,6 +207,29 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Secure server-side password verification (keeps secrets hidden from client-side bundle)
+  app.post("/api/verify-password", (req, res) => {
+    try {
+      const { type, password } = req.body;
+      const SECRETS: Record<string, string> = {
+        screener: "threadsresearch",
+        names: "itounite",
+        table: "realworldisreal",
+        analysis: "threadsunite"
+      };
+      
+      const cleanInput = (password || "").trim();
+      const actualSecret = SECRETS[type];
+      
+      if (actualSecret && cleanInput === actualSecret) {
+        return res.json({ success: true });
+      }
+      return res.json({ success: false });
+    } catch {
+      return res.status(500).json({ success: false, error: "Internal validation failed" });
+    }
+  });
+
   // API router for Backtesting engine
   app.post("/api/backtest", async (req, res) => {
     try {
