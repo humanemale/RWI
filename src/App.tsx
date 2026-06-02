@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { SCREENER_STOCKS } from "./screenerData";
+import { ScreenerCompanyAnalysisView } from "./ScreenerCompanyAnalysisView";
 import { motion, AnimatePresence } from "motion/react";
 import {
   TrendingUp,
@@ -148,6 +149,65 @@ function mapYahooTickerToTradingView(ticker: string): string {
   return clean;
 }
 
+function mapScreenerTickerToYahoo(ticker: string, country: string): string {
+  const t = ticker.trim().toUpperCase();
+  const c = (country || "").trim().toUpperCase();
+  
+  if (t === "CSU") return "CSU.TO";
+  if (t === "LIFCOB") return "LIFCO-B.ST";
+  if (t === "TOI") return "TOI.V";
+  if (t === "LMN") return "LMN.V";
+  
+  if (c === "CANADA") {
+    if (["CSU", "TOI", "LMN", "TINY", "DSG", "BYD", "ATS", "SJ", "TVK", "CMG", "FFH"].includes(t)) {
+      if (["LMN", "TOI", "TINY"].includes(t)) return t + ".V";
+      return t + ".TO";
+    }
+  }
+  
+  if (c === "SWEDEN") {
+    if (["ALIFB", "ANODB", "ADDTB", "ASSAB", "BEIJB", "BEIAB", "BERGB", "EMBRACB", "HEXAB", "LAGRB", "NIBEB", "SDIPB", "SWECB", "XANOB", "BERNERB"].includes(t)) {
+      if (t === "ALIFB") return "ALIF-B.ST";
+      if (t === "ANODB") return "ANOD-B.ST";
+      if (t === "ADDTB") return "ADDT-B.ST";
+      if (t === "ASSAB") return "ASSA-B.ST";
+      if (t === "BEIJB") return "BEIJ-B.ST";
+      if (t === "BEIAB") return "BEIA-B.ST";
+      if (t === "BERGB") return "BERG-B.ST";
+      if (t === "EMBRACB") return "EMBRAC-B.ST";
+      if (t === "HEXAB") return "HEXA-B.ST";
+      if (t === "LAGRB") return "LAGR-B.ST";
+      if (t === "NIBEB") return "NIBE-B.ST";
+      if (t === "SDIPB") return "SDIP-B.ST";
+      if (t === "SWECB") return "SWEC-B.ST";
+      if (t === "XANOB") return "XANO-B.ST";
+      if (t === "BERNERB") return "BERNER-B.ST";
+    }
+    if (["INDT", "INSTAL", "SECARE", "VIMIAN", "VITB"].includes(t)) {
+      if (t === "INDT") return "INDT.ST";
+      if (t === "INSTAL") return "INSTAL.ST";
+      if (t === "SECARE") return "SECARE.ST";
+      if (t === "VIMIAN") return "VIMIAN.ST";
+      if (t === "VITB") return "VIT-B.ST";
+    }
+  }
+
+  if (c === "GERMANY" && t === "CHG") return "CHG.DE";
+  if (c === "ITALY" && t === "IP") return "IP.MI";
+  if (c === "JAPAN") {
+    if (t === "3697") return "3697.T";
+    if (t === "319A") return "319A.T";
+  }
+  if (c === "UNITED KINGDOM" || c === "UK") {
+    if (["DPLM", "HLMA"].includes(t)) {
+      return t + ".L";
+    }
+  }
+  if (c === "FRANCE" && t === "ERF") return "ERF.PA";
+
+  return t;
+}
+
 interface TradingViewWidgetProps {
   symbol: string;
 }
@@ -264,6 +324,55 @@ export default function App() {
   const [screenerCountryFilter, setScreenerCountryFilter] = useState("all");
   const [screenerIndustryFilter, setScreenerIndustryFilter] = useState("all");
   const [filterMinCagr, setFilterMinCagr] = useState<number | "">("");
+
+  // Selected ticker for comparative analysis in Screener tab
+  const [selectedScreenerAnalysisTicker, setSelectedScreenerAnalysisTicker] = useState<string | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [comparisonError, setComparisonError] = useState<string | null>(null);
+  const [comparisonData, setComparisonData] = useState<{
+    ticker: string;
+    benchmark: string;
+    startDate: string;
+    endDate: string;
+    series: {
+      date: string;
+      compPrice: number;
+      brkPrice: number;
+      compIndexed: number;
+      brkIndexed: number;
+    }[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (!selectedScreenerAnalysisTicker) {
+      setComparisonData(null);
+      return;
+    }
+
+    const fetchComparison = async () => {
+      setComparisonLoading(true);
+      setComparisonError(null);
+      try {
+        const stockInfo = SCREENER_STOCKS.find(s => s.ticker === selectedScreenerAnalysisTicker);
+        const mappedYahooTicker = stockInfo 
+          ? mapScreenerTickerToYahoo(stockInfo.ticker, stockInfo.country)
+          : selectedScreenerAnalysisTicker;
+
+        const response = await fetch(`/api/compare-company?ticker=${encodeURIComponent(mappedYahooTicker)}`);
+        if (!response.ok) {
+          throw new Error("Could not retrieve comparative analytics from the server.");
+        }
+        const data = await response.json();
+        setComparisonData(data);
+      } catch (err: any) {
+        setComparisonError(err.message || "Failed to load comparison data.");
+      } finally {
+        setComparisonLoading(false);
+      }
+    };
+
+    fetchComparison();
+  }, [selectedScreenerAnalysisTicker]);
 
   // Helper for secure server-side verification of clearance keys (passwords)
   const verifyPasswordOnServer = async (type: string, val: string): Promise<boolean> => {
@@ -508,6 +617,15 @@ export default function App() {
                 )}
               </form>
             </div>
+          ) : selectedScreenerAnalysisTicker ? (
+            <ScreenerCompanyAnalysisView 
+              ticker={selectedScreenerAnalysisTicker} 
+              onBack={() => setSelectedScreenerAnalysisTicker(null)} 
+              namesUnlocked={namesUnlocked}
+              comparisonLoading={comparisonLoading}
+              comparisonError={comparisonError}
+              comparisonData={comparisonData}
+            />
           ) : (
             <div className="space-y-6 animate-fade-in" id="screener-workspace">
               {/* Screener Intro Banner */}
@@ -779,7 +897,14 @@ export default function App() {
                                       {stock.ticker}
                                     </span>
                                   </td>
-                                  <td className="py-3 px-4 whitespace-nowrap text-zinc-900 font-semibold">{stock.name}</td>
+                                  <td className="py-3 px-4 whitespace-nowrap text-[11px]">
+                                    <button
+                                      onClick={() => setSelectedScreenerAnalysisTicker(stock.ticker)}
+                                      className="text-zinc-900 font-semibold hover:underline hover:text-zinc-650 text-left cursor-pointer transition-all"
+                                    >
+                                      {stock.name}
+                                    </button>
+                                  </td>
                                   <td className="py-3 px-4 text-zinc-500 italic text-[10px] whitespace-nowrap">{stock.sector}</td>
                                   <td className="py-3 px-4 text-zinc-500 text-[10px] whitespace-nowrap">{stock.industry || "N/A"}</td>
                                   <td className="py-3 px-4 text-right font-bold text-zinc-950 whitespace-nowrap">

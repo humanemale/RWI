@@ -230,6 +230,82 @@ async function startServer() {
     }
   });
 
+  // Fetch comparison data between a chosen serial acquirer and Berkshire Hathaway (BRK-B)
+  app.get("/api/compare-company", async (req, res) => {
+    try {
+      const ticker = (req.query.ticker as string || "").trim().toUpperCase();
+      if (!ticker) {
+        return res.status(400).json({ error: "Ticker query parameter is required" });
+      }
+
+      const requestedStart = req.query.startDate as string || "2018-01-01";
+      const requestedEnd = req.query.endDate as string || "2025-12-31";
+
+      const compHistory = await fetchTickerHistory(ticker);
+      const brkHistory = await fetchTickerHistory("BRK-B");
+
+      const compDateMap = new Map<string, number>();
+      for (let i = 0; i < compHistory.dates.length; i++) {
+        compDateMap.set(compHistory.dates[i], compHistory.prices[i]);
+      }
+
+      const brkDateMap = new Map<string, number>();
+      for (let i = 0; i < brkHistory.dates.length; i++) {
+        brkDateMap.set(brkHistory.dates[i], brkHistory.prices[i]);
+      }
+
+      // Find all unique dates in range sorted chronologically
+      const allDates = Array.from(new Set([
+        ...compHistory.dates,
+        ...brkHistory.dates
+      ])).filter(d => d >= requestedStart && d <= requestedEnd).sort();
+
+      const series: any[] = [];
+      let baseCompPrice: number | null = null;
+      let baseBrkPrice: number | null = null;
+      let lastCompPrice = 1.0;
+      let lastBrkPrice = 1.0;
+
+      for (const d of allDates) {
+        const compPrice = compDateMap.get(d);
+        const brkPrice = brkDateMap.get(d);
+
+        // Forward-fill prices if some day is missing
+        if (compPrice !== undefined) lastCompPrice = compPrice;
+        if (brkPrice !== undefined) lastBrkPrice = brkPrice;
+
+        // Set baseline values at the first available day in the series
+        if (baseCompPrice === null && compPrice !== undefined) {
+          baseCompPrice = compPrice;
+        }
+        if (baseBrkPrice === null && brkPrice !== undefined) {
+          baseBrkPrice = brkPrice;
+        }
+
+        const compIndexed = baseCompPrice && baseCompPrice > 0 ? (lastCompPrice / baseCompPrice) * 100 : 100;
+        const brkIndexed = baseBrkPrice && baseBrkPrice > 0 ? (lastBrkPrice / baseBrkPrice) * 100 : 100;
+
+        series.push({
+          date: d,
+          compPrice: lastCompPrice,
+          brkPrice: lastBrkPrice,
+          compIndexed: parseFloat(compIndexed.toFixed(2)),
+          brkIndexed: parseFloat(brkIndexed.toFixed(2))
+        });
+      }
+
+      res.json({
+        ticker,
+        benchmark: "BRK-B",
+        startDate: allDates[0] || requestedStart,
+        endDate: allDates[allDates.length - 1] || requestedEnd,
+        series
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message || "Failed to compile comparison data" });
+    }
+  });
+
   // API router for Backtesting engine
   app.post("/api/backtest", async (req, res) => {
     try {
