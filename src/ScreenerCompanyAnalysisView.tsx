@@ -78,9 +78,8 @@ export function ScreenerCompanyAnalysisView({
     if (timeframe === "MAX") return true;
     const date = new Date(point.date);
     const limitDate = new Date();
-    // In our synth database, dates go up to late 2025.
-    // Let's baseline based on the maximum date in the dataset.
-    const maxDateStr = comparisonData.series[comparisonData.series.length - 1]?.date || "2025-12-31";
+    // Baseline based on the maximum available date in the dataset or present day.
+    const maxDateStr = comparisonData.series[comparisonData.series.length - 1]?.date || new Date().toISOString().split("T")[0];
     const refDate = new Date(maxDateStr);
     
     if (timeframe === "3Y") {

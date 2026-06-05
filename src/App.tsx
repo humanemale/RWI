@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import { SCREENER_STOCKS } from "./screenerData";
 import { ScreenerCompanyAnalysisView } from "./ScreenerCompanyAnalysisView";
+import { WhitePaperView } from "./WhitePaperView";
 import { motion, AnimatePresence } from "motion/react";
 import {
   TrendingUp,
@@ -272,13 +273,21 @@ function TradingViewWidget({ symbol }: TradingViewWidgetProps) {
   );
 }
 
+function getTodayDateString(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function App() {
   // Config state
   const [tickersInput, setTickersInput] = useState(DEFAULT_ALPERA_TICKERS);
   const [selectedAnalysisTicker, setSelectedAnalysisTicker] = useState("CSU.TO");
   const [weightingStrategy, setWeightingStrategy] = useState<"equal" | "premium">("premium");
   const [startDate, setStartDate] = useState("2010-01-01");
-  const [endDate, setEndDate] = useState("2025-12-31");
+  const [endDate, setEndDate] = useState(getTodayDateString());
   const [scaleType, setScaleType] = useState<"linear" | "log">("log");
 
   // Query engine statuses
@@ -305,8 +314,8 @@ export default function App() {
   const [analysisPasswordInput, setAnalysisPasswordInput] = useState("");
   const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
 
-  // Active navigation tab ("dashboard" | "screener")
-  const [activeTab, setActiveTab] = useState<"dashboard" | "screener">("dashboard");
+  // Active navigation tab ("dashboard" | "screener" | "paper")
+  const [activeTab, setActiveTab] = useState<"dashboard" | "screener" | "paper">("dashboard");
 
   // Screener authentication wall (secured via server validation)
   const [screenerUnlocked, setScreenerUnlocked] = useState(false);
@@ -554,6 +563,16 @@ export default function App() {
                 {!screenerUnlocked && (
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-pulse" />
                 )}
+              </button>
+              <button
+                onClick={() => setActiveTab("paper")}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer ${
+                  activeTab === "paper"
+                    ? "bg-zinc-900 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900"
+                }`}
+              >
+                WHITE PAPER
               </button>
             </nav>
 
@@ -937,6 +956,8 @@ export default function App() {
               </div>
             </div>
           )
+        ) : activeTab === "paper" ? (
+          <WhitePaperView />
         ) : (
           <>
             <div className="bg-white border border-zinc-200 rounded-sm p-6 sm:p-8 text-zinc-900 relative overflow-hidden animate-fade-in" id="dashboard-intro">
@@ -997,7 +1018,7 @@ export default function App() {
                       type="date"
                       value={startDate}
                       min="1999-01-01"
-                      max="2025-12-31"
+                      max={getTodayDateString()}
                       onChange={(e) => setStartDate(e.target.value)}
                       className="w-full text-xs rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden font-mono text-center"
                     />
@@ -1008,7 +1029,7 @@ export default function App() {
                       type="date"
                       value={endDate}
                       min="2000-01-01"
-                      max="2025-12-31"
+                      max={getTodayDateString()}
                       onChange={(e) => setEndDate(e.target.value)}
                       className="w-full text-xs rounded-sm border border-zinc-200 bg-white px-3 py-2 text-zinc-900 shadow-xs focus:border-zinc-500 focus:outline-hidden font-mono text-center"
                     />
@@ -1021,31 +1042,31 @@ export default function App() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => handleApplyPreset("2000-01-01", "2025-12-31")}
+                      onClick={() => handleApplyPreset("2000-01-01", getTodayDateString())}
                       className="py-1 px-2 text-[10px] font-mono rounded bg-zinc-50 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors text-zinc-500 text-left"
                     >
-                      • Max Time (2000-2025)
+                      • Max Time (2000-Present)
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleApplyPreset("2010-01-01", "2025-12-31")}
+                      onClick={() => handleApplyPreset("2010-01-01", getTodayDateString())}
                       className="py-1 px-2 text-[10px] font-mono rounded bg-zinc-50 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors text-zinc-500 text-left"
                     >
-                      • Decade+ (2010-2025)
+                      • Decade+ (2010-Present)
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleApplyPreset("2015-01-01", "2025-12-31")}
+                      onClick={() => handleApplyPreset("2015-01-01", getTodayDateString())}
                       className="py-1 px-2 text-[10px] font-mono rounded bg-zinc-50 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors text-zinc-500 text-left"
                     >
-                      • Mid range (2015-2025)
+                      • Mid range (2015-Present)
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleApplyPreset("2020-01-01", "2025-12-31")}
+                      onClick={() => handleApplyPreset("2020-01-01", getTodayDateString())}
                       className="py-1 px-2 text-[10px] font-mono rounded bg-zinc-50 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 transition-colors text-zinc-500 text-left"
                     >
-                      • Modern (2020-2025)
+                      • Modern (2020-Present)
                     </button>
                   </div>
                 </div>

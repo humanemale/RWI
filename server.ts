@@ -95,7 +95,7 @@ function generateSyntheticHistory(ticker: string): { dates: string[]; prices: nu
   const prices: number[] = [];
   
   const startDate = new Date("1999-01-01");
-  const endDate = new Date("2025-12-31"); // Aligned with December 31, 2025
+  const endDate = new Date(); // Dynamic present day
   
   // Use a simple seed based on ticker characters to make it deterministic
   let seed = 0;
@@ -239,7 +239,7 @@ async function startServer() {
       }
 
       const requestedStart = req.query.startDate as string || "2018-01-01";
-      const requestedEnd = req.query.endDate as string || "2025-12-31";
+      const requestedEnd = req.query.endDate as string || new Date().toISOString().split("T")[0];
 
       const compHistory = await fetchTickerHistory(ticker);
       const brkHistory = await fetchTickerHistory("BRK-B");
