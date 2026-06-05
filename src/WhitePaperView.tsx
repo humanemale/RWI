@@ -57,7 +57,8 @@ export function WhitePaperView() {
           </nav>
           
           <div className="pt-3 border-t border-zinc-100 text-[10px] text-zinc-450 font-mono space-y-1 leading-normal">
-            <p>PUBLISHED: ALPERA RESEARCH</p>
+            <p>AUTHOR: SAGAR TANDON</p>
+            <p>COMPANY: THREADS UNITE OÜ</p>
             <p>STATUS: UNRESTRICTED</p>
             <p>VERSION: ACADEMIC_v3.2</p>
           </div>
@@ -87,7 +88,7 @@ export function WhitePaperView() {
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-zinc-500 font-mono pt-2 gap-2">
             <div>
-              <span>AUTHORS: ALPERA RESEARCH TEAM &amp; SYSTEM INVESTORS</span>
+              <span>AUTHOR: SAGAR TANDON, DIRECTOR AT THREADS UNITE OÜ</span>
             </div>
             <div>
               <span>ACCESSED: PRESENT DAY (DYNAMIC SYSTEM METRIC)</span>
