@@ -315,7 +315,38 @@ export default function App() {
   const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
 
   // Active navigation tab ("dashboard" | "screener" | "paper")
-  const [activeTab, setActiveTab] = useState<"dashboard" | "screener" | "paper">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "screener" | "paper">(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path === "/whitepaper") return "paper";
+      if (path === "/screener") return "screener";
+    }
+    return "dashboard";
+  });
+
+  // Dynamic router support for history-back/forward and custom route updates
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === "/whitepaper") {
+        setActiveTab("paper");
+      } else if (path === "/screener") {
+        setActiveTab("screener");
+      } else {
+        setActiveTab("dashboard");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleTabChange = (tab: "dashboard" | "screener" | "paper") => {
+    setActiveTab(tab);
+    const newPath = tab === "paper" ? "/whitepaper" : tab === "screener" ? "/screener" : "/";
+    if (window.location.pathname !== newPath) {
+      window.history.pushState(null, "", newPath);
+    }
+  };
 
   // Screener authentication wall (secured via server validation)
   const [screenerUnlocked, setScreenerUnlocked] = useState(false);
@@ -542,7 +573,7 @@ export default function App() {
           <div className="flex items-center space-x-4 text-xs font-mono">
             <nav className="flex space-x-1.5 p-1 bg-zinc-100 border border-zinc-200 rounded-sm">
               <button
-                onClick={() => setActiveTab("dashboard")}
+                onClick={() => handleTabChange("dashboard")}
                 className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer ${
                   activeTab === "dashboard"
                     ? "bg-zinc-900 text-white shadow-xs"
@@ -552,7 +583,7 @@ export default function App() {
                 DASHBOARD
               </button>
               <button
-                onClick={() => setActiveTab("screener")}
+                onClick={() => handleTabChange("screener")}
                 className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer flex items-center gap-1.5 ${
                   activeTab === "screener"
                     ? "bg-zinc-900 text-white shadow-xs"
@@ -565,7 +596,7 @@ export default function App() {
                 )}
               </button>
               <button
-                onClick={() => setActiveTab("paper")}
+                onClick={() => handleTabChange("paper")}
                 className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer ${
                   activeTab === "paper"
                     ? "bg-zinc-900 text-white shadow-xs"
