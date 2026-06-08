@@ -1989,7 +1989,7 @@ export default function App() {
           </p>
           <div className="pt-8 border-t border-zinc-200 text-center text-xs">
             <p className="text-zinc-600 text-[10px]">
-              &copy; 2026 <a href="https://threadsunite.xyz/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 underline text-zinc-550 font-bold tracking-widest transition-colors uppercase">Threads Unite</a>
+              &copy; 2026 First Followers LLC and Threads Unite. All rights reserved.
             </p>
           </div>
         </div>

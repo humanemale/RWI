@@ -27,7 +27,32 @@ export function WhitePaperView() {
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in" id="white-paper-view-container">
+    <div 
+      className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in select-none" 
+      id="white-paper-view-container"
+      onCopy={(e) => {
+        e.preventDefault();
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+      }}
+    >
+      <style>{`
+        @media print {
+          body {
+            display: none !important;
+          }
+          #white-paper-view-container, #academic-paper-body {
+            display: none !important;
+          }
+        }
+        .select-none, .select-none * {
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+        }
+      `}</style>
       
       {/* Sidebar Navigation */}
       <aside className="lg:col-span-3 lg:sticky lg:top-8 space-y-4" id="paper-outline-sidebar">
@@ -57,10 +82,11 @@ export function WhitePaperView() {
           </nav>
           
           <div className="pt-3 border-t border-zinc-100 text-[10px] text-zinc-450 font-mono space-y-1 leading-normal">
-            <p>AUTHOR: SAGAR TANDON</p>
-            <p>COMPANY: THREADS UNITE OÜ</p>
-            <p>STATUS: UNRESTRICTED</p>
-            <p>VERSION: ACADEMIC_v3.2</p>
+            <p>RESEARCH &amp; ANALYSIS: SAGAR TANDON</p>
+            <p>CONFIDENTIALITY: RESTRICTED</p>
+            <p className="text-[9px] text-amber-600 font-sans tracking-tight leading-normal uppercase">
+              Subject to author&apos;s permission
+            </p>
           </div>
         </div>
 
@@ -88,11 +114,17 @@ export function WhitePaperView() {
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-zinc-500 font-mono pt-2 gap-2">
             <div>
-              <span>AUTHOR: SAGAR TANDON, DIRECTOR AT THREADS UNITE OÜ</span>
+              <span>RESEARCH WORK &amp; ANALYSIS BY SAGAR TANDON</span>
             </div>
             <div>
-              <span>ACCESSED: PRESENT DAY (DYNAMIC SYSTEM METRIC)</span>
+              <span className="text-red-650 bg-red-50 px-2 py-0.5 rounded-sm border border-red-100 font-bold tracking-wider text-[9px] uppercase">
+                CONFIDENTIALITY: RESTRICTED
+              </span>
             </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-amber-50/50 border border-amber-200 rounded-sm text-[11px] text-amber-850 leading-relaxed font-sans text-left">
+            <strong>NOTICE &amp; DISCLAIMER:</strong> This document is confidential and contains proprietary research. Intellectual property rights belong strictly to the author. Reproduction, translation, photocopying, or copying in any form is <strong>strictly prohibited</strong> without explicit prior written authorization from the author, Sagar Tandon. Not allowed to be copied without checking with the author.
           </div>
         </header>
 
@@ -719,6 +751,20 @@ export function WhitePaperView() {
               <li>Dr. Henry Singleton and Teledyne - Finbox, accessed June 3, 2026</li>
               <li>A Deep Dive into Shareholder Value Creation by Acquisition-Driven Compounders - REQ Capital, accessed June 3, 2026</li>
             </ul>
+          </div>
+
+          <div className="border-t border-zinc-200 pt-6 mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-450 font-sans">
+            <div>
+              <p className="text-[11px] font-sans">
+                &copy; 2026 First Followers LLC and Threads Unite. All rights reserved.
+              </p>
+              <p className="text-[10px] text-amber-700 font-sans mt-0.5">
+                Copyrighted material. Not allowed to be copied without checking with the author.
+              </p>
+            </div>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-red-600 font-bold">
+              Confidentiality: Restricted, subject to author&apos;s permission
+            </p>
           </div>
         </footer>
 
