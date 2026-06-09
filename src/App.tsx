@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { SCREENER_STOCKS } from "./screenerData";
 import { ScreenerCompanyAnalysisView } from "./ScreenerCompanyAnalysisView";
 import { WhitePaperView } from "./WhitePaperView";
+import { DeckView } from "./DeckView";
 import { motion, AnimatePresence } from "motion/react";
 import {
   TrendingUp,
@@ -314,12 +315,13 @@ export default function App() {
   const [analysisPasswordInput, setAnalysisPasswordInput] = useState("");
   const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
 
-  // Active navigation tab ("dashboard" | "screener" | "paper")
-  const [activeTab, setActiveTab] = useState<"dashboard" | "screener" | "paper">(() => {
+  // Active navigation tab ("dashboard" | "screener" | "paper" | "deck")
+  const [activeTab, setActiveTab ] = useState<"dashboard" | "screener" | "paper" | "deck">(() => {
     if (typeof window !== "undefined") {
       const path = window.location.pathname;
       if (path === "/whitepaper") return "paper";
       if (path === "/screener") return "screener";
+      if (path === "/deck" || path === "/slides" || path === "/presentation" || path === "/pitch") return "deck";
     }
     return "dashboard";
   });
@@ -332,6 +334,8 @@ export default function App() {
         setActiveTab("paper");
       } else if (path === "/screener") {
         setActiveTab("screener");
+      } else if (path === "/deck" || path === "/slides" || path === "/presentation" || path === "/pitch") {
+        setActiveTab("deck");
       } else {
         setActiveTab("dashboard");
       }
@@ -340,9 +344,9 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  const handleTabChange = (tab: "dashboard" | "screener" | "paper") => {
+  const handleTabChange = (tab: "dashboard" | "screener" | "paper" | "deck") => {
     setActiveTab(tab);
-    const newPath = tab === "paper" ? "/whitepaper" : tab === "screener" ? "/screener" : "/";
+    const newPath = tab === "paper" ? "/whitepaper" : tab === "screener" ? "/screener" : tab === "deck" ? "/deck" : "/";
     if (window.location.pathname !== newPath) {
       window.history.pushState(null, "", newPath);
     }
@@ -604,6 +608,16 @@ export default function App() {
                 }`}
               >
                 WHITE PAPER
+              </button>
+              <button
+                onClick={() => handleTabChange("deck")}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer flex items-center gap-1 ${
+                  activeTab === "deck"
+                    ? "bg-zinc-900 text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900"
+                }`}
+              >
+                SOLO 🔒
               </button>
             </nav>
 
@@ -989,6 +1003,8 @@ export default function App() {
           )
         ) : activeTab === "paper" ? (
           <WhitePaperView />
+        ) : activeTab === "deck" ? (
+          <DeckView />
         ) : (
           <>
             <div className="bg-white border border-zinc-200 rounded-sm p-6 sm:p-8 text-zinc-900 relative overflow-hidden animate-fade-in" id="dashboard-intro">
