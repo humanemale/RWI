@@ -7,7 +7,6 @@ import { useState, useEffect, useRef } from "react";
 import { SCREENER_STOCKS } from "./screenerData";
 import { ScreenerCompanyAnalysisView } from "./ScreenerCompanyAnalysisView";
 import { WhitePaperView } from "./WhitePaperView";
-import { DeckView } from "./DeckView";
 import { motion, AnimatePresence } from "motion/react";
 import {
   TrendingUp,
@@ -315,13 +314,12 @@ export default function App() {
   const [analysisPasswordInput, setAnalysisPasswordInput] = useState("");
   const [analysisPasswordError, setAnalysisPasswordError] = useState(false);
 
-  // Active navigation tab ("dashboard" | "screener" | "paper" | "deck")
-  const [activeTab, setActiveTab ] = useState<"dashboard" | "screener" | "paper" | "deck">(() => {
+  // Active navigation tab ("dashboard" | "screener" | "paper")
+  const [activeTab, setActiveTab ] = useState<"dashboard" | "screener" | "paper">(() => {
     if (typeof window !== "undefined") {
       const path = window.location.pathname;
       if (path === "/whitepaper") return "paper";
       if (path === "/screener") return "screener";
-      if (path === "/deck" || path === "/slides" || path === "/presentation" || path === "/pitch") return "deck";
     }
     return "dashboard";
   });
@@ -334,8 +332,6 @@ export default function App() {
         setActiveTab("paper");
       } else if (path === "/screener") {
         setActiveTab("screener");
-      } else if (path === "/deck" || path === "/slides" || path === "/presentation" || path === "/pitch") {
-        setActiveTab("deck");
       } else {
         setActiveTab("dashboard");
       }
@@ -344,9 +340,9 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  const handleTabChange = (tab: "dashboard" | "screener" | "paper" | "deck") => {
+  const handleTabChange = (tab: "dashboard" | "screener" | "paper") => {
     setActiveTab(tab);
-    const newPath = tab === "paper" ? "/whitepaper" : tab === "screener" ? "/screener" : tab === "deck" ? "/deck" : "/";
+    const newPath = tab === "paper" ? "/whitepaper" : tab === "screener" ? "/screener" : "/";
     if (window.location.pathname !== newPath) {
       window.history.pushState(null, "", newPath);
     }
@@ -558,13 +554,13 @@ export default function App() {
     <div className="min-h-screen bg-[#FAFAFA] text-[#18181B] font-sans antialiased tech-grid-bg" id="theme-workspace">
       {/* HEADER BAR */}
       <header className="bg-white/95 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-50" id="top-nav">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-zinc-900 text-white rounded-sm border border-zinc-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0 md:h-16 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="p-2 bg-zinc-900 text-white rounded-sm border border-zinc-800">
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold tracking-wider text-[#18181B] flex items-center gap-1.5 font-mono uppercase">
+            <div className="space-y-0.5">
+              <h1 className="text-sm font-bold tracking-wider text-[#18181B] flex items-center justify-center sm:justify-start gap-1.5 font-mono uppercase">
                 REAL WORLD INDEX [BENCHMARK]
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[9px] font-semibold font-mono rounded bg-zinc-900 text-white">
                   LIVE_FEED
@@ -574,8 +570,8 @@ export default function App() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4 text-xs font-mono">
-            <nav className="flex space-x-1.5 p-1 bg-zinc-100 border border-zinc-200 rounded-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-xs font-mono w-full md:w-auto">
+            <nav className="flex flex-wrap items-center justify-center gap-1 p-1 bg-zinc-100 border border-zinc-200 rounded-sm w-full sm:w-auto">
               <button
                 onClick={() => handleTabChange("dashboard")}
                 className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer ${
@@ -608,16 +604,6 @@ export default function App() {
                 }`}
               >
                 WHITE PAPER
-              </button>
-              <button
-                onClick={() => handleTabChange("deck")}
-                className={`px-3 py-1.5 text-[10px] font-bold uppercase transition-all rounded-[1px] cursor-pointer flex items-center gap-1 ${
-                  activeTab === "deck"
-                    ? "bg-zinc-900 text-white shadow-xs"
-                    : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
-                SOLO 🔒
               </button>
             </nav>
 
@@ -1003,8 +989,6 @@ export default function App() {
           )
         ) : activeTab === "paper" ? (
           <WhitePaperView />
-        ) : activeTab === "deck" ? (
-          <DeckView />
         ) : (
           <>
             <div className="bg-white border border-zinc-200 rounded-sm p-6 sm:p-8 text-zinc-900 relative overflow-hidden animate-fade-in" id="dashboard-intro">

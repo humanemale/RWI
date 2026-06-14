@@ -660,7 +660,7 @@ export function WhitePaperView() {
             </h3>
             <ol className="list-none space-y-3">
               <li id="ref-1">
-                <strong>[^1, ^2, ^3]</strong> First Followers - Building Free Cash Flow.pdf | First Followers - Seeking Freedom with Free Cash Flow.pdf | First Followers - Capital Allocation (1).pdf
+                <strong>[^1, ^2, ^3]</strong> <a href="https://firstfollowers.substack.com/p/building-free-cash-flow" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">First Followers - Building Free Cash Flow</a> | <a href="https://firstfollowers.substack.com/p/seeking-freedom-with-free-cash-flow" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">First Followers - Seeking Freedom with Free Cash Flow</a> | <a href="https://firstfollowers.substack.com/p/capital-allocation" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">First Followers - Capital Allocation</a>
               </li>
               <li id="ref-4">
                 <strong>[^4]</strong> The Acquirer's Multiple - Operator-Allocator Spectrum
@@ -739,17 +739,19 @@ export function WhitePaperView() {
               Works Cited
             </h3>
             <ul className="list-decimal pl-4 space-y-2 text-zinc-500">
-              <li>First Followers - Building Free Cash Flow.pdf</li>
-              <li>The Three Cornerstones of Serial Acquirer Success - Quartr, accessed June 3, 2026, <a href="https://quartr.com/insights/edge/the-three-cornerstones-of-serial-acquirer-success" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">Direct Link</a></li>
-              <li>Torbjörn Arenbo, Capital Allocation and Value Creation (Hardback, accessed June 3, 2026)</li>
-              <li>The Operator-Allocator Spectrum - Acquirer, accessed June 3, 2026</li>
-              <li>Decoding Capital Allocation - Quartr Insights, accessed June 3, 2026</li>
-              <li>The Art of Capital Allocation | BCG, accessed June 3, 2026</li>
-              <li>A Three-Step Capital Allocation Framework - IDEAS/RePEc, accessed June 3, 2026</li>
-              <li>M&amp;A, Transactions and Post-Merger Integration - RNG Strategy, accessed June 3, 2026</li>
-              <li>VALUE CREATION THROUGH MERGERS AND ACQUISITIONS - Research@CBS, accessed June 3, 2026</li>
-              <li>Dr. Henry Singleton and Teledyne - Finbox, accessed June 3, 2026</li>
-              <li>A Deep Dive into Shareholder Value Creation by Acquisition-Driven Compounders - REQ Capital, accessed June 3, 2026</li>
+              <li><a href="https://firstfollowers.substack.com/p/building-free-cash-flow" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">First Followers - Building Free Cash Flow</a></li>
+              <li><a href="https://firstfollowers.substack.com/p/seeking-freedom-with-free-cash-flow" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">First Followers - Seeking Freedom with Free Cash Flow</a></li>
+              <li><a href="https://firstfollowers.substack.com/p/capital-allocation" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">First Followers - Capital Allocation</a></li>
+              <li><a href="https://quartr.com/insights/edge/the-three-cornerstones-of-serial-acquirer-success" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-800">The Three Cornerstones of Serial Acquirer Success - Quartr</a></li>
+              <li>Torbjörn Arenbo, Capital Allocation and Value Creation (Hardback)</li>
+              <li>The Operator-Allocator Spectrum - Acquirer</li>
+              <li>Decoding Capital Allocation - Quartr Insights</li>
+              <li>The Art of Capital Allocation | BCG</li>
+              <li>A Three-Step Capital Allocation Framework - IDEAS/RePEc</li>
+              <li>M&amp;A, Transactions and Post-Merger Integration - RNG Strategy</li>
+              <li>VALUE CREATION THROUGH MERGERS AND ACQUISITIONS - Research@CBS</li>
+              <li>Dr. Henry Singleton and Teledyne - Finbox</li>
+              <li>A Deep Dive into Shareholder Value Creation by Acquisition-Driven Compounders - REQ Capital</li>
             </ul>
           </div>
 
