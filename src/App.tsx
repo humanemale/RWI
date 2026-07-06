@@ -284,6 +284,10 @@ function getTodayDateString(): string {
 export default function App() {
   // Config state
   const [tickersInput, setTickersInput] = useState(DEFAULT_ALPERA_TICKERS);
+  const [excludeUS, setExcludeUS] = useState(false);
+  const [lastRunExcludeUS, setLastRunExcludeUS] = useState(false);
+  const [focusJNC, setFocusJNC] = useState(false);
+  const [lastRunFocusJNC, setLastRunFocusJNC] = useState(false);
   const [selectedAnalysisTicker, setSelectedAnalysisTicker] = useState("CSU.TO");
   const [weightingStrategy, setWeightingStrategy] = useState<"equal" | "premium">("premium");
   const [startDate, setStartDate] = useState("2010-01-01");
@@ -460,10 +464,17 @@ export default function App() {
     while (attempt < maxRetries) {
       try {
         // Split and clean tickers list
-        const cleanTickers = tickersInput
+        let cleanTickers = tickersInput
           .split(",")
           .map(t => t.trim())
           .filter(t => t.length > 0);
+
+        if (excludeUS) {
+          cleanTickers = cleanTickers.filter(ticker => {
+            const t = ticker.trim().toUpperCase();
+            return t.includes(".");
+          });
+        }
 
         const response = await fetch("/api/backtest", {
           method: "POST",
@@ -483,6 +494,7 @@ export default function App() {
 
         const resData: BacktestResults = await response.json();
         setResults(resData);
+        setLastRunExcludeUS(excludeUS);
         // Break on successful execution
         break;
       } catch (err: any) {
@@ -548,7 +560,26 @@ export default function App() {
     setEndDate(end);
   };
 
-  const isOutOfSync = results && (startDate !== results.startDateActual || endDate !== results.endDateActual);
+  const isOutOfSync = results && (
+    startDate !== results.startDateActual || 
+    endDate !== results.endDateActual ||
+    weightingStrategy !== results.weightingModelConfig ||
+    excludeUS !== lastRunExcludeUS
+  );
+
+  const parsedTickers = tickersInput
+    .split(",")
+    .map(t => t.trim())
+    .filter(t => t.length > 0);
+
+  const usCompaniesCount = parsedTickers.filter(t => !t.includes(".")).length;
+
+  const activeTickersCount = parsedTickers.filter(t => {
+    if (excludeUS) {
+      return t.includes(".");
+    }
+    return true;
+  }).length;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] text-[#18181B] font-sans antialiased tech-grid-bg" id="theme-workspace">
@@ -1161,11 +1192,43 @@ export default function App() {
                   </button>
                 </div>
               </div>
-                            {/* CONSTITUENTS TEXTAREA */}
+
+              {/* GEOGRAPHIC CONSTRAINTS */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                    <Globe className="w-3.5 h-3.5 text-zinc-700" /> GEOGRAPHIC FOCUS
+                  </h4>
+                </div>
+
+                <div className="p-3.5 rounded-sm border border-zinc-200 bg-white hover:border-zinc-350 transition-all text-xs">
+                  <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setExcludeUS(prev => !prev)}>
+                    <div className="space-y-0.5 pr-2">
+                      <div className="font-bold font-mono uppercase tracking-wide text-zinc-900">
+                        Exclude US Companies
+                      </div>
+                      <p className="text-[10px] text-zinc-500 leading-normal">
+                        Toggle to turn off and remove US serial acquirers (e.g. ROP, HEI, TDG, BRK-B) from the active index portfolio.
+                      </p>
+                    </div>
+                    
+                    {/* Toggle Switch */}
+                    <div className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                      excludeUS ? "bg-zinc-900" : "bg-zinc-200"
+                    }`}>
+                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                        excludeUS ? "translate-x-4" : "translate-x-0"
+                      }`} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CONSTITUENTS TEXTAREA */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                    Constituents ({tickersInput.split(",").filter(t => t.trim()).length} companies)
+                    Constituents ({activeTickersCount} companies{excludeUS && usCompaniesCount > 0 && ` • -${usCompaniesCount} US excluded`})
                   </label>
                   {namesUnlocked && (
                     <button
